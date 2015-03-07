@@ -8,7 +8,9 @@
 { TetrisGame }   = require \./tetris-game
 
 
-# Program index
+#
+# Setup
+#
 
 game-state =
   metagame-state: \no-game
@@ -25,13 +27,36 @@ input-handler = new InputHandler
 tetris-game = new TetrisGame
 
 
+#
 # Output
+#
 
 canvas = document.get-element-by-id \canvas
 ctx = canvas.get-context \2d
 
 
+#
+# DEBUG
+#
+
+{ DebugOutput } = require \./debug-output
+
+InputHandler.debug-mode!
+InputHandler.on 192, ->
+  if frame-driver.state.running
+    frame-driver.stop!
+  else
+    frame-driver.start!
+
+dbo = document.create-element \pre
+document.body.append-child dbo
+
+debug-output = new DebugOutput dbo
+
+
+#
 # Frame loop
+#
 
 frame-driver = new FrameDriver (Δt, time, frame) ->
   game-state.elapsed-time   = time
@@ -42,19 +67,12 @@ frame-driver = new FrameDriver (Δt, time, frame) ->
 
   tetris-game.render game-state, canvas
 
-
-# Bind controls
+  if debug-output?
+    debug-output.render game-state, dbo
 
 
 # Init
 
-# frame-driver.start!
+frame-driver.start!
 
-
-#
-# DEBUG
-#
-
-InputHandler.debug-mode!
-InputHandler.on 192, frame-driver~stop
 

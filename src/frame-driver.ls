@@ -14,12 +14,13 @@ export class FrameDriver
   (@on-frame) ->
     log "FrameDriver::new - new FrameDriver"
     @state =
+      zero: 0
       time: 0
       frame: 0
-      running: yes
+      running: no
 
   frame: ~>
-    now = Date.now!
+    now = Date.now! - @state.zero
     Δt = @state.time - now
 
     @state.time = now
@@ -32,7 +33,8 @@ export class FrameDriver
 
   start: ->
     log "FrameDriver::Start - starting"
-    @state.time = Date.now!
+    @state.zero = Date.now!
+    @state.time = 0
     @state.running = yes
     raf @frame
 
