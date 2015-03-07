@@ -43,7 +43,7 @@ event-summary = (event-saver, key-direction) ->
 export class InputHandler
 
   ->
-    log "InputHandler::new - new InputHandler"
+    log "InputHandler::new"
     @state = saved-events: []
     document.addEventListener \keydown, event-summary @save-event, \down
     document.addEventListener \keyup,   event-summary @save-event, \up

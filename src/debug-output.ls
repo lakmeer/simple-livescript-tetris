@@ -2,6 +2,13 @@
 # Templates
 
 template =
+
+  cell: ->
+    if it then "▒▒" else "  "
+
+  brick: ->
+    this.shape.map (.map template.cell .join ' ') .join "\n        "
+
   keys: ->
     if @length
       for key-summary in this
@@ -11,12 +18,14 @@ template =
 
   normal: -> """
      meta - #{@metagame-state}
-     next - #{@next-brick}
      time - #{@elapsed-time}
     frame - #{@elapsed-frames}
-    brick - #{@current-brick}
     score - #{@score}
      keys - #{template.keys.apply @input-state}
+
+    brick - #{template.brick.apply @current-brick}
+
+     next - #{template.brick.apply @next-brick}
   """
 
 
