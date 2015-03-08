@@ -3,6 +3,8 @@
 
 { id, log, rand, random-from } = require \std
 
+{ V2 } = require \../vector
+
 BrickShapes = require \./data/brick-shapes
 
 
@@ -15,34 +17,45 @@ BrickShapes = require \./data/brick-shapes
 # Ideally this should juist be a collection of stateless processing functions.
 #
 
-export can-move = ({ pos, shape }, { cells, width, height }, move) ->
-  #if not (0 <= pos.0 + move.0) or
-  #   not (pos.0 + move.0 + shape.0.length <= cells.0.length)
-  #  return false
+export can-drop = (brick, arena) ->
+  can-move brick, [0 1], arena
 
-  #if not (0 <= pos.1 + move.1 < cells.length) or
-  #   not (pos.1 + move.1 + shape.length <= cells.length)
-  #  return false
+export can-move = (brick, move, arena) ->
+  collides (V2.add brick.pos, move), brick.shape, arena
 
+export can-rotate = (brick, dir, arena) ->
+  new-shape = get-shape-of-rotation brick, brick.rotation + dir
+  collides brick.pos, new-shape, arena
+
+export collides = (pos, shape, { cells, width, height }) ->
   for v, y in [ pos.1 til pos.1 + shape.length ]
     for u, x in [ pos.0 til pos.0 + shape.0.length ]
       # We only collide with regard to shape-cells which are actually full
       if shape[y][x] > 0
 
-        # Check boundaries of arena
-        if (v + move.1 >= height) or (u + move.0 >= width) or (u + move.0 < 0)
-          return false
+        # Shooting off the top of the arena is allowed, plus we know it's
+        # not gonna collide with anything. So if we have a shape with a
+        # filled cell at y = -1, we can skip the check for this cell. There
+        # won't be *NO* cells not inside the arena to check for other kinds
+        # of collisions.
 
-        # Check cell contents of arena
-        if cells[v + move.1][u + move.0]
-          return false
+        # Skip if y < 0
+        if v >= 0
+
+          # Check boundaries of arena
+          if v >= height or
+             u >= width or
+             u < 0 or
+             cells[v][u]
+            return false
 
   return true
 
 export copy-brick-to-arena = ({ pos, shape }, { cells }) ->
   for v, y in [ pos.1 til pos.1 + shape.length ]
     for u, x in [ pos.0 til pos.0 + shape.0.length ]
-      if shape[y][x]
+      # Don't copy if brick's cell has landed out of bounds
+      if shape[y][x] and v >= 0
         cells[v][u] = shape[y][x]
 
 export top-is-reached = ({ cells }) ->
@@ -74,16 +87,17 @@ export drop-arena-row = ({ cells }, row-ix) ->
 
 export clear-arena = (arena) ->
   for row in arena.cells
-    for cell in row
-      cell = 0
+    for cell, i in row
+      row[i] = 0
 
-export get-shape-of = (brick) ->
-  log BrickShapes, brick.type
-  log BrickShapes[ brick.type ], brick.rotation
-  log BrickShapes[ brick.type ][ brick.rotation ]
+export get-shape-of-rotation = (brick, rotation) ->
+  rotation = normalise-rotation brick, rotation
+  BrickShapes[ brick.type ][ rotation ]
 
-export rotate-brick = ({ rotation, type }:brick, dir = 1) ->
-  log rotation, BrickShapes[ type ].length
-  brick.rotation = rotation + dir % (BrickShapes[ type ].length - 1)
-  brick.shape = get-shape-of brick
+export normalise-rotation = ({ type }, rotation) ->
+  rotation % BrickShapes[ type ].length
+
+export rotate-brick = ({ rotation, type }:brick, dir) ->
+  brick.rotation = normalise-rotation brick, brick.rotation + dir
+  brick.shape = get-shape-of-rotation brick, brick.rotation
 

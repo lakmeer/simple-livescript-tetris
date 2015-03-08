@@ -77,8 +77,7 @@ frame-driver = new FrameDriver (Δt, time, frame) ->
   if debug-output?
     debug-output.render game-state, dbo
 
-  if game-state.metagame-state is \failure
-    frame-driver.stop!
+  #if game-state.metagame-state is \failure then frame-driver.stop!
 
 
 # Init

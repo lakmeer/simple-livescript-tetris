@@ -27,16 +27,17 @@ export class TetrisGame
 
   show-fail-screen: (game-state, Δt) ->
     console.debug \FAILED
+    @begin-new-game game-state
 
   begin-new-game: (game-state) ->
     let this = game-state
       Core.clear-arena @arena
-      @brick.next     = Core.new-brick!
-      @brick.next.pos = [4 -1]
+      @brick.next        = Core.new-brick!
+      @brick.next.pos    = [4 -1]
       @brick.current     = Core.new-brick!
       @brick.current.pos = [4 -1]
-      @score          = 0
-      @metagame-state = \game
+      @score             = 0
+      @metagame-state    = \game
       @timers.drop-timer.reset!
     return game-state
 
@@ -48,15 +49,16 @@ export class TetrisGame
       if action is \down
         switch key
         | \left =>
-          if Core.can-move brick.current, arena, [ -1, 0 ]
+          if Core.can-move brick.current, [-1, 0 ], arena
             brick.current.pos.0 -= 1
         | \right =>
-          if Core.can-move brick.current, arena, [ 1, 0 ]
+          if Core.can-move brick.current, [ 1, 0 ], arena
             brick.current.pos.0 += 1
         | \down =>
           gs.force-down-mode = on
         | \action =>
-          Core.rotate-brick gs.brick.current
+          if Core.can-rotate brick.current, 1, arena
+            Core.rotate-brick gs.brick.current, 1
 
       else if action is \up
         switch key
@@ -65,7 +67,7 @@ export class TetrisGame
 
     # If the game is in force-down mode, drop the brick every frame
     if gs.force-down-mode and gs.timers.force-drop-wait-timer.expired
-      if Core.can-move brick.current, arena, [ 0, 1 ]
+      if Core.can-drop brick.current, arena
         brick.current.pos.1 += 1
       else
         Core.copy-brick-to-arena brick.current, arena
@@ -77,7 +79,7 @@ export class TetrisGame
       gs.timers.drop-timer.reset-with-remainder!
 
       # If it hits, save it to the arena and make a new one
-      if Core.can-move brick.current, arena, [ 0, 1 ]
+      if Core.can-drop brick.current, arena
         brick.current.pos.1 += 1
       else
         Core.copy-brick-to-arena brick.current, arena
