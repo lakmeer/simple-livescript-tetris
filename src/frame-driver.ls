@@ -21,7 +21,7 @@ export class FrameDriver
 
   frame: ~>
     now = Date.now! - @state.zero
-    Δt = @state.time - now
+    Δt = now - @state.time
 
     @state.time = now
     @state.frame = @state.frame + 1

@@ -3,64 +3,24 @@
 
 { log, delay } = require \std
 
-{ FrameDriver }  = require \./frame-driver
-{ InputHandler } = require \./input-handler
-{ TetrisGame }   = require \./tetris-game
+{ FrameDriver }           = require \./frame-driver
+{ InputHandler }          = require \./input-handler
+{ TetrisGame, GameState } = require \./tetris-game
+{ Timer }                 = require \./timer
 
 
 #
 # Setup
 #
 
+game-state = new GameState do
+  tile-size   : 20
+  tile-width  : 10
+  tile-height : 18
+
 input-handler = new InputHandler
-tetris-game = new TetrisGame
+tetris-game = new TetrisGame game-state
 
-tile-size   = 20
-tile-width  = 10
-tile-height = 18
-
-current-brick =
-  * [ 1, 0 ]
-  * [ 1, 0 ]
-  * [ 1, 1 ]
-
-next-brick =
-  * [ 1, 1 ]
-  * [ 1, 1 ]
-
-game-state =
-  metagame-state: \no-game
-  score: 0
-  next-brick:
-    shape: next-brick
-  current-brick:
-    shape: current-brick
-    pos: [ 4, 0 ]
-  input-state: []
-  elapsed-time: 0
-  elapsed-frames: 0
-  tile-size: tile-size
-  tile-width: tile-width
-  tile-height: tile-height
-  arena:
-    * [ 0 ] * tile-width
-    * [ 0 ] * tile-width
-    * [ 0 ] * tile-width
-    * [ 0 ] * tile-width
-    * [ 0 ] * tile-width
-    * [ 0 ] * tile-width
-    * [ 0 ] * tile-width
-    * [ 0 ] * tile-width
-    * [ 0 ] * tile-width
-    * [ 0 ] * tile-width
-    * [ 0 ] * tile-width
-    * [ 1 ] * tile-width
-    * [ 2 ] * tile-width
-    * [ 3 ] * tile-width
-    * [ 4 ] * tile-width
-    * [ 5 ] * tile-width
-    * [ 6 ] * tile-width
-    * [ 7 ] * tile-width
 
 #
 # Output
@@ -108,6 +68,8 @@ frame-driver = new FrameDriver (Δt, time, frame) ->
 
   game-state := tetris-game.run-frame game-state, Δt
 
+  Timer.update-all Δt
+
   tetris-game.render game-state, output-context
 
   if debug-output?
@@ -122,6 +84,6 @@ frame-driver = new FrameDriver (Δt, time, frame) ->
 frame-driver.start!
 delay 1000, -> game-state.input-state.push { key: \left, action: \down }
 delay 1000, -> game-state.input-state.push { key: \left, action: \up }
-delay 30000, frame-driver~stop
+#delay 30000, frame-driver~stop
 
 

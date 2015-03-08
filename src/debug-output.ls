@@ -22,6 +22,7 @@ template =
     frame - #{@elapsed-frames}
     score - #{@score}
      keys - #{template.keys.apply @input-state}
+     drop - #{if @force-down-mode then \force else \auto}
 
     brick - #{template.brick.apply @current-brick}
 

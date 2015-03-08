@@ -22,7 +22,6 @@ export class ArenaView extends Blitter
 
   draw-tiles: (arena, size) ->
     for row, y in arena
-      log row
       for tile, x in row
         if tile
           @ctx.fill-style = tile-colors[ tile ]
