@@ -2,7 +2,7 @@
 # Require
 
 { id, log, rand } = require \std
-{ Timer } = require \../timer
+{ Timer } = require \./timer
 
 
 #

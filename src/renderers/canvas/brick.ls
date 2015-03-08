@@ -4,7 +4,7 @@
 { id, log } = require \std
 
 { tile-colors } = require \./palette
-{ Blitter } = require \../blitter
+{ Blitter }     = require \./blitter
 
 
 #

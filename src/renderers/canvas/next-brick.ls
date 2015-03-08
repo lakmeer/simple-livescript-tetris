@@ -2,8 +2,8 @@
 { id, log } = require \std
 
 { BrickView } = require \./brick
-{ Blitter } = require \../blitter
-{ Palette } = require \./palette.ls
+{ Blitter }   = require \./blitter
+{ Palette }   = require \./palette
 
 
 #
@@ -17,6 +17,16 @@ export class NextBrickView extends Blitter
     super ...
     @brick = new BrickView @opts, @width, @height
 
+  pretty-offset: (type) ->
+    switch type
+    | \square => [0 0]
+    | \zig    => [0.5 0]
+    | \zag    => [0.5 0]
+    | \left   => [0.5 0]
+    | \right  => [0.5 0]
+    | \tee    => [0.5 0]
+    | \tetris => [0 -0.5]
+
   render-bg: ->
     @ctx.fill-style = Palette.neutral.3
     @ctx.fill-rect 0, 0, @width, @height
@@ -27,5 +37,8 @@ export class NextBrickView extends Blitter
     @clear!
     @render-bg!
     @brick.render brick
-    @brick.blit-to this
+
+    [ x, y ] = @pretty-offset brick.type
+
+    @brick.blit-to this, x * @opts.z, y * @opts.z
 

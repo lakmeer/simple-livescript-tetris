@@ -3,12 +3,11 @@
 
 { id, log } = require \std
 
-{ Blitter } = require \./blitter
-{ Palette } = require \./views/palette.ls
-
-{ ArenaView } = require \./views/arena
-{ BrickView } = require \./views/brick
-{ NextBrickView } = require \./views/next-brick
+{ Blitter }       = require \./blitter
+{ Palette }       = require \./palette
+{ ArenaView }     = require \./arena
+{ BrickView }     = require \./brick
+{ NextBrickView } = require \./next-brick
 
 
 #
@@ -17,7 +16,7 @@
 # Able to render various part of the game, including game states and menus.
 #
 
-export class Renderer extends Blitter
+export class CanvasRenderer extends Blitter
 
   (@opts) ->
     @z = z = @opts.z
@@ -50,4 +49,13 @@ export class Renderer extends Blitter
     @brick.blit-to @arena, pos.0 * @z, pos.1 * @z
     @arena.blit-to this, @opts.z, @opts.z
     @next.blit-to  this, (2 + gs.arena.width) * @z, 1 * @z
+
+  render: ({ metagame-state }:game-state) ->
+    switch metagame-state
+    | \no-game => @render-start-menu game-state
+    | \pause   => @render-pause-menu game-state
+    | \game    => @render-game       game-state
+    | \win     => @render-win-screen game-state
+    | otherwise => @render-blank!
+    return this
 

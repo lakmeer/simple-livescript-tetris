@@ -3,8 +3,8 @@
 
 { id, log } = require \std
 
-{ Palette } = require \./palette.ls
-{ Blitter } = require \../blitter
+{ Palette } = require \./palette
+{ Blitter } = require \./blitter
 
 
 # Reference Constants

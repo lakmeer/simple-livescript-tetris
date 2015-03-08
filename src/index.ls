@@ -3,26 +3,31 @@
 
 { log, delay } = require \std
 
+{ CanvasRenderer }        = require \./renderers/canvas
 { FrameDriver }           = require \./frame-driver
 { InputHandler }          = require \./input-handler
 { TetrisGame, GameState } = require \./tetris-game
-{ Timer }                 = require \./timer
+
+
+{ DebugOutput } = require \./debug-output
 
 
 #
 # Setup
 #
 
-game-state = new GameState do
-  tile-size   : 20
+game-opts =
   tile-width  : 10
   tile-height : 18
 
-render-opts = z: 20
+render-opts =
+  z: 20
 
 input-handler = new InputHandler
-tetris-game = new TetrisGame game-state, render-opts
-
+renderer      = new CanvasRenderer render-opts
+game-state    = new GameState game-opts
+tetris-game   = new TetrisGame game-state
+debug-output  = new DebugOutput
 
 #
 # Output
@@ -37,19 +42,12 @@ output-canvas.height = 1 + 20 * render-opts.z
 # Debug
 #
 
-{ DebugOutput } = require \./debug-output
-
 #InputHandler.debug-mode!
 InputHandler.on 192, ->
   if frame-driver.state.running
     frame-driver.stop!
   else
     frame-driver.start!
-
-dbo = document.create-element \pre
-document.body.append-child dbo
-
-debug-output = new DebugOutput dbo
 
 
 #
@@ -63,12 +61,10 @@ frame-driver = new FrameDriver (Δt, time, frame) ->
 
   game-state := tetris-game.run-frame game-state, Δt
 
-  Timer.update-all Δt
-
-  output-blitter = tetris-game.render game-state, render-opts
+  output-blitter = renderer.render game-state, render-opts
 
   if debug-output?
-    debug-output.render game-state, dbo
+    debug-output.render game-state
 
   output-blitter.blit-to-canvas output-canvas
 

@@ -4,9 +4,8 @@
 { id, log, rand } = require \std
 { random-from } = require \std
 
-{ GameState } = require \./game-state
-{ Renderer }  = require \./renderer
-{ Timer }     = require \../timer
+{ GameState } = require \./game-state    # just proxy
+{ Timer }     = require \./timer
 
 Core  = require \./game-core
 
@@ -21,9 +20,8 @@ Core  = require \./game-core
 
 export class TetrisGame
 
-  (game-state, renderer-options) ->
+  (game-state) ->
     log "TetrisGame::new"
-    @renderer  = new Renderer renderer-options
 
   show-fail-screen: (game-state, Δt) ->
     console.debug \FAILED
@@ -99,21 +97,13 @@ export class TetrisGame
         gs.metagame-state = \failure
 
   run-frame: ({ metagame-state }:game-state, Δt) ->
+    Timer.update-all Δt
     switch metagame-state
     | \failure => @show-fail-screen ...
     | \game => @advance-game ...
     | \no-game => @begin-new-game ...
     | otherwise => console.debug 'Unknown metagame-state:', metagame-state
     return game-state
-
-  render: ({ metagame-state }:game-state) ->
-    switch metagame-state
-    | \no-game => @renderer.render-start-menu game-state
-    | \pause   => @renderer.render-pause-menu game-state
-    | \game    => @renderer.render-game       game-state
-    | \win     => @renderer.render-win-screen game-state
-    | otherwise => @renderer.render-blank!
-    return @renderer
 
 
 # Export

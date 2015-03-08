@@ -42,10 +42,17 @@ template =
 #
 # Debug Output
 #
-# Shows visualisation of gamestate in some useful way
+# Shows visualisation of gamestate in some useful way.
+# This class conflates it's view layer but meh, it's debug only.
 #
 
 export class DebugOutput
-  render: (state, output) ->
-    output.innerText = template.normal.apply state
+
+  ->
+    @dbo = document.create-element \pre
+    document.body.append-child @dbo
+
+  render: (state) ->
+    @dbo.innerText = template.normal.apply state
+
 
