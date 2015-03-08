@@ -1,9 +1,7 @@
 
 # Require
 
-{ id, log, rand, random-from } = require \std
-
-{ V2 } = require \../vector
+{ id, log, add-v2, rand, random-from } = require \std
 
 BrickShapes = require \./data/brick-shapes
 
@@ -21,7 +19,8 @@ export can-drop = (brick, arena) ->
   can-move brick, [0 1], arena
 
 export can-move = (brick, move, arena) ->
-  collides (V2.add brick.pos, move), brick.shape, arena
+  new-pos = add-v2 brick.pos, move
+  collides new-pos, brick.shape, arena
 
 export can-rotate = (brick, dir, arena) ->
   new-shape = get-shape-of-rotation brick, brick.rotation + dir

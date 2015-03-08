@@ -25,10 +25,12 @@ template =
      NEXT :
    #{template.brick.apply @brick.next}
 
+    score - #{@score}
+    lines - #{@lines}
+
      meta - #{@metagame-state}
      time - #{@elapsed-time}
     frame - #{@elapsed-frames}
-    score - #{@score}
      keys - #{template.keys.apply @input-state}
      drop - #{if @force-down-mode then \force else \auto}
 

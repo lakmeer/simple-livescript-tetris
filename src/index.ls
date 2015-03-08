@@ -21,7 +21,7 @@ game-state = new GameState do
 render-opts = z: 20
 
 input-handler = new InputHandler
-tetris-game = new TetrisGame game-state
+tetris-game = new TetrisGame game-state, render-opts
 
 
 #
@@ -29,15 +29,8 @@ tetris-game = new TetrisGame game-state
 #
 
 output-canvas  = document.get-element-by-id \canvas
-output-context = output-canvas.get-context \2d
-
-output-canvas.style.background = "white"
-output-canvas.style.border = "3px solid"
-output-canvas.style.border-color = "\#444 \#999 \#eee \#777"
-output-canvas.style.border-radius = "3px"
-
-output-canvas.width  = 1 + 10 * 20
-output-canvas.height = 1 + 18 * 20
+output-canvas.width  = 1 + 17 * render-opts.z
+output-canvas.height = 1 + 20 * render-opts.z
 
 
 #
@@ -72,10 +65,12 @@ frame-driver = new FrameDriver (Δt, time, frame) ->
 
   Timer.update-all Δt
 
-  tetris-game.render game-state, render-opts, output-context
+  output-blitter = tetris-game.render game-state, render-opts
 
   if debug-output?
     debug-output.render game-state, dbo
+
+  output-blitter.blit-to-canvas output-canvas
 
   #if game-state.metagame-state is \failure then frame-driver.stop!
 

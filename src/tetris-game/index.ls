@@ -21,9 +21,9 @@ Core  = require \./game-core
 
 export class TetrisGame
 
-  (game-state) ->
+  (game-state, renderer-options) ->
     log "TetrisGame::new"
-    @renderer  = new Renderer
+    @renderer  = new Renderer renderer-options
 
   show-fail-screen: (game-state, Δt) ->
     console.debug \FAILED
@@ -33,9 +33,9 @@ export class TetrisGame
     let this = game-state
       Core.clear-arena @arena
       @brick.next        = Core.new-brick!
-      @brick.next.pos    = [4 -1]
+      @brick.next.pos    = [3 -1]
       @brick.current     = Core.new-brick!
-      @brick.current.pos = [4 -1]
+      @brick.current.pos = [3 -1]
       @score             = 0
       @metagame-state    = \game
       @timers.drop-timer.reset!
@@ -58,7 +58,7 @@ export class TetrisGame
           gs.force-down-mode = on
         | \action =>
           if Core.can-rotate brick.current, 1, arena
-            Core.rotate-brick gs.brick.current, 1
+            Core.rotate-brick brick.current, 1
 
       else if action is \up
         switch key
@@ -71,6 +71,7 @@ export class TetrisGame
         brick.current.pos.1 += 1
       else
         Core.copy-brick-to-arena brick.current, arena
+        gs.force-down-mode = off
         gs.timers.force-drop-wait-timer.reset!
         gs.timers.drop-timer.time-to-expiry = gs.timers.force-drop-wait-timer.target-time
 
@@ -86,13 +87,16 @@ export class TetrisGame
         Core.spawn-new-brick gs
 
       # Check for completed lines. If found, remove them, drop upper rows
-      for row-ix in [ ix for row, ix in arena.cells when Core.is-complete row ]
-        Core.drop-arena-row gs.arena, row-ix
+      rows-dropped =
+        for row-ix in [ ix for row, ix in arena.cells when Core.is-complete row ]
+          Core.drop-arena-row gs.arena, row-ix
+
+      # Add any dropped lines to score
+      gs.lines += rows-dropped.length
 
       # Check if top has been reached. If so, change game mode to fail
       if Core.top-is-reached arena
         gs.metagame-state = \failure
-
 
   run-frame: ({ metagame-state }:game-state, Δt) ->
     switch metagame-state
@@ -102,13 +106,14 @@ export class TetrisGame
     | otherwise => console.debug 'Unknown metagame-state:', metagame-state
     return game-state
 
-  render: ({ metagame-state }:game-state, render-opts, output) ->
+  render: ({ metagame-state }:game-state) ->
     switch metagame-state
-    | \no-game => @renderer.render-start-menu game-state, render-opts, output
-    | \pause   => @renderer.render-pause-menu game-state, render-opts, output
-    | \game    => @renderer.render-game       game-state, render-opts, output
-    | \win     => @renderer.render-win-screen game-state, render-opts, output
-    | otherwise => void
+    | \no-game => @renderer.render-start-menu game-state
+    | \pause   => @renderer.render-pause-menu game-state
+    | \game    => @renderer.render-game       game-state
+    | \win     => @renderer.render-win-screen game-state
+    | otherwise => @renderer.render-blank!
+    return @renderer
 
 
 # Export

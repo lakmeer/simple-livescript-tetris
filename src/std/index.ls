@@ -21,6 +21,7 @@ export rand = (min, max) -> min + floor random! * (max - min)
 
 export random-from = (list) -> list[ rand 0, list.length - 1 ]
 
+export add-v2 = (a, b) -> [ a.0 + b.0, a.1 + b.1 ]
 
 export raf = # (λ) -> set-timeout λ, 1000 / 8
   if window.request-animation-frame? then that

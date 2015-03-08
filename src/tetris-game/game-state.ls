@@ -17,6 +17,7 @@ export class GameState
   defaults =
     metagame-state: \no-game
     score: 0
+    lines: 0
     brick:
       next: void
       current: void
