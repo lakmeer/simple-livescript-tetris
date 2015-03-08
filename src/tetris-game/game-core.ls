@@ -3,34 +3,7 @@
 
 { id, log, rand, random-from } = require \std
 
-
-# Reference
-
-brick-shapes =
-  * [[1 1],
-     [1 1]]
-
-  * [[2 2 0],
-     [0 2 2]]
-
-  * [[0 3 3],
-     [3 3 0]]
-
-  * [[4 0],
-     [4 0],
-     [4 4]]
-
-  * [[0 5],
-     [0 5],
-     [5 5]]
-
-  * [[0 6 0],
-     [6 6 6]]
-
-  * [[7],
-     [7],
-     [7],
-     [7]]
+BrickShapes = require \./data/brick-shapes
 
 
 #
@@ -42,30 +15,38 @@ brick-shapes =
 # Ideally this should juist be a collection of stateless processing functions.
 #
 
-export can-move = ({ pos, shape }, arena, move) ->
-  if not (0 <= pos.0 + move.0) or
-     not (pos.0 + move.0 + shape.0.length <= arena.0.length)
-    return false
+export can-move = ({ pos, shape }, { cells, width, height }, move) ->
+  #if not (0 <= pos.0 + move.0) or
+  #   not (pos.0 + move.0 + shape.0.length <= cells.0.length)
+  #  return false
 
-  if not (0 <= pos.1 + move.1 < arena.length) or
-     not (pos.1 + move.1 + shape.length <= arena.length)
-    return false
+  #if not (0 <= pos.1 + move.1 < cells.length) or
+  #   not (pos.1 + move.1 + shape.length <= cells.length)
+  #  return false
 
   for v, y in [ pos.1 til pos.1 + shape.length ]
     for u, x in [ pos.0 til pos.0 + shape.0.length ]
-      if arena[v + move.1][u + move.0] and shape[y][x]
-        return false
+      # We only collide with regard to shape-cells which are actually full
+      if shape[y][x] > 0
+
+        # Check boundaries of arena
+        if (v + move.1 >= height) or (u + move.0 >= width) or (u + move.0 < 0)
+          return false
+
+        # Check cell contents of arena
+        if cells[v + move.1][u + move.0]
+          return false
 
   return true
 
-export copy-brick-to-arena = ({ pos, shape }, arena) ->
+export copy-brick-to-arena = ({ pos, shape }, { cells }) ->
   for v, y in [ pos.1 til pos.1 + shape.length ]
     for u, x in [ pos.0 til pos.0 + shape.0.length ]
       if shape[y][x]
-        arena[v][u] = shape[y][x]
+        cells[v][u] = shape[y][x]
 
-export top-is-reached = (arena) ->
-  for cell in arena.0
+export top-is-reached = ({ cells }) ->
+  for cell in cells.0
     if cell
       return true
   return false
@@ -76,21 +57,33 @@ export is-complete = (row) ->
       return false
   return true
 
-export new-brick = (ix = rand 0, brick-shapes.length) ->
-  shape: brick-shapes[ix]
-  pos: [4, 0]
+export new-brick = (ix = rand 0, BrickShapes.all.length) ->
+  rotation: 0
+  shape: BrickShapes.all[ix].shapes.0
+  type: BrickShapes.all[ix].type
+  pos: [0 0]
 
-export spawn-new-brick = (game-state) ->
-  game-state.current-brick = game-state.next-brick
-  game-state.current-brick.pos = [4, 0]
-  game-state.next-brick = new-brick!
+export spawn-new-brick = (gs) ->
+  gs.brick.current = gs.brick.next
+  gs.brick.current.pos = [4 -1]
+  gs.brick.next = new-brick!
 
-export drop-arena-row = (arena, row-ix) ->
-  arena.splice row-ix, 1
-  arena.unshift [ 0 ] * arena.0.length
+export drop-arena-row = ({ cells }, row-ix) ->
+  cells.splice row-ix, 1
+  cells.unshift [ 0 ] * cells.0.length
 
 export clear-arena = (arena) ->
-  for row in arena
+  for row in arena.cells
     for cell in row
       cell = 0
+
+export get-shape-of = (brick) ->
+  log BrickShapes, brick.type
+  log BrickShapes[ brick.type ], brick.rotation
+  log BrickShapes[ brick.type ][ brick.rotation ]
+
+export rotate-brick = ({ rotation, type }:brick, dir = 1) ->
+  log rotation, BrickShapes[ type ].length
+  brick.rotation = rotation + dir % (BrickShapes[ type ].length - 1)
+  brick.shape = get-shape-of brick
 

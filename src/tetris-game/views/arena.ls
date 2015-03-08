@@ -20,8 +20,8 @@ export class ArenaView extends Blitter
   ->
     super ...
 
-  draw-tiles: (arena, size) ->
-    for row, y in arena
+  draw-cells: (cells, size) ->
+    for row, y in cells
       for tile, x in row
         if tile
           @ctx.fill-style = tile-colors[ tile ]
@@ -41,8 +41,8 @@ export class ArenaView extends Blitter
 
     @ctx.stroke!
 
-  render: ({ arena, tile-width, tile-height, tile-size }) ->
+  render: ({ arena: { cells, width, height } }, { z }) ->
     @clear!
-    @draw-grid tile-width, tile-height, tile-size
-    @draw-tiles arena, tile-size
+    @draw-grid width, height, z
+    @draw-cells cells, z
     return this

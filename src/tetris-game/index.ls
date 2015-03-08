@@ -31,15 +31,16 @@ export class TetrisGame
   begin-new-game: (game-state) ->
     let this = game-state
       Core.clear-arena @arena
-      @next-brick = Core.new-brick!
-      @current-brick = Core.new-brick!
-      @current-brick.pos = [4,0]
-      @score = 0
+      @brick.next     = Core.new-brick!
+      @brick.next.pos = [4 -1]
+      @brick.current     = Core.new-brick!
+      @brick.current.pos = [4 -1]
+      @score          = 0
       @metagame-state = \game
       @timers.drop-timer.reset!
-    return log game-state.arena
+    return game-state
 
-  advance-game: ({ current-brick, arena, input-state }:gs) ->
+  advance-game: ({ brick, arena, input-state }:gs) ->
 
     # Handle user input
     while input-state.length
@@ -47,13 +48,15 @@ export class TetrisGame
       if action is \down
         switch key
         | \left =>
-          if Core.can-move current-brick, arena, [ -1, 0 ]
-            current-brick.pos.0 -= 1
+          if Core.can-move brick.current, arena, [ -1, 0 ]
+            brick.current.pos.0 -= 1
         | \right =>
-          if Core.can-move current-brick, arena, [ 1, 0 ]
-            current-brick.pos.0 += 1
+          if Core.can-move brick.current, arena, [ 1, 0 ]
+            brick.current.pos.0 += 1
         | \down =>
           gs.force-down-mode = on
+        | \action =>
+          Core.rotate-brick gs.brick.current
 
       else if action is \up
         switch key
@@ -62,10 +65,10 @@ export class TetrisGame
 
     # If the game is in force-down mode, drop the brick every frame
     if gs.force-down-mode and gs.timers.force-drop-wait-timer.expired
-      if Core.can-move current-brick, arena, [ 0, 1 ]
-        current-brick.pos.1 += 1
+      if Core.can-move brick.current, arena, [ 0, 1 ]
+        brick.current.pos.1 += 1
       else
-        Core.copy-brick-to-arena current-brick, arena
+        Core.copy-brick-to-arena brick.current, arena
         gs.timers.force-drop-wait-timer.reset!
         gs.timers.drop-timer.time-to-expiry = gs.timers.force-drop-wait-timer.target-time
 
@@ -74,14 +77,14 @@ export class TetrisGame
       gs.timers.drop-timer.reset-with-remainder!
 
       # If it hits, save it to the arena and make a new one
-      if Core.can-move current-brick, arena, [ 0, 1 ]
-        current-brick.pos.1 += 1
+      if Core.can-move brick.current, arena, [ 0, 1 ]
+        brick.current.pos.1 += 1
       else
-        Core.copy-brick-to-arena current-brick, arena
+        Core.copy-brick-to-arena brick.current, arena
         Core.spawn-new-brick gs
 
       # Check for completed lines. If found, remove them, drop upper rows
-      for row-ix in [ ix for row, ix in arena when Core.is-complete row ]
+      for row-ix in [ ix for row, ix in arena.cells when Core.is-complete row ]
         Core.drop-arena-row gs.arena, row-ix
 
       # Check if top has been reached. If so, change game mode to fail
@@ -97,12 +100,12 @@ export class TetrisGame
     | otherwise => console.debug 'Unknown metagame-state:', metagame-state
     return game-state
 
-  render: ({ metagame-state }:game-state, output) ->
+  render: ({ metagame-state }:game-state, render-opts, output) ->
     switch metagame-state
-    | \no-game => @renderer.render-start-menu game-state, output
-    | \pause   => @renderer.render-pause-menu game-state, output
-    | \game    => @renderer.render-game       game-state, output
-    | \win     => @renderer.render-win-screen game-state, output
+    | \no-game => @renderer.render-start-menu game-state, render-opts, output
+    | \pause   => @renderer.render-pause-menu game-state, render-opts, output
+    | \game    => @renderer.render-game       game-state, render-opts, output
+    | \win     => @renderer.render-win-screen game-state, render-opts, output
     | otherwise => void
 
 

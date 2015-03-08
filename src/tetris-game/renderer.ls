@@ -21,9 +21,8 @@ export class Renderer
 
   render-start-menu: ->
 
-
-  render-game: ({ current-brick: brick, tile-size: z }:game-state, output-context) ->
-    output-context.clear-rect 0, 0, game-state.tile-width * z, game-state.tile-height * z
-    @arena.render game-state .blit-to output-context, 0, 0, 0.7
-    @brick.render game-state .blit-to output-context, brick.pos.0 * z, brick.pos.1 * z
+  render-game: ({ brick, arena }:gs, { z }:opts, output-context) ->
+    output-context.clear-rect 0, 0, arena.width * z, arena.height * z
+    @arena.render gs, opts .blit-to output-context, 0, 0, 0.7
+    @brick.render gs, opts .blit-to output-context, brick.current.pos.0 * z, brick.current.pos.1 * z
 

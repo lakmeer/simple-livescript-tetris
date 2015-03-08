@@ -18,6 +18,8 @@ game-state = new GameState do
   tile-width  : 10
   tile-height : 18
 
+render-opts = z: 20
+
 input-handler = new InputHandler
 tetris-game = new TetrisGame game-state
 
@@ -70,7 +72,7 @@ frame-driver = new FrameDriver (Δt, time, frame) ->
 
   Timer.update-all Δt
 
-  tetris-game.render game-state, output-context
+  tetris-game.render game-state, render-opts, output-context
 
   if debug-output?
     debug-output.render game-state, dbo

@@ -1,4 +1,9 @@
 
+# Require
+
+{ id, log } = require \std
+
+
 # Templates
 
 template =
@@ -7,7 +12,9 @@ template =
     if it then "▒▒" else "  "
 
   brick: ->
-    this.shape.map (.map template.cell .join ' ') .join "\n        "
+    if not @shape.0.map?
+      log \debug-brick: @shape, this
+    @pos + @shape.map (.map template.cell .join ' ') .join "\n        "
 
   keys: ->
     if @length
@@ -24,9 +31,9 @@ template =
      keys - #{template.keys.apply @input-state}
      drop - #{if @force-down-mode then \force else \auto}
 
-    brick - #{template.brick.apply @current-brick}
+    brick - #{template.brick.apply @brick.current}
 
-     next - #{template.brick.apply @next-brick}
+     next - #{template.brick.apply @brick.next}
   """
 
 
