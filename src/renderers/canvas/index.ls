@@ -26,6 +26,10 @@ export class CanvasRenderer extends Blitter
     @brick = new BrickView     @opts,  4 * z, 4 * z
     @next  = new NextBrickView @opts,  4 * z, 4 * z
 
+    @output-canvas  = document.get-element-by-id \canvas
+    @output-canvas.width  = 1 + 17 * @opts.z
+    @output-canvas.height = 1 + 20 * @opts.z
+
     #@frame = new FrameView 25 * z, 20 * z
 
   render-start-menu: ->
@@ -51,11 +55,15 @@ export class CanvasRenderer extends Blitter
     @next.blit-to  this, (2 + gs.arena.width) * @z, 1 * @z
 
   render: ({ metagame-state }:game-state) ->
-    switch metagame-state
+    output-blitter = switch metagame-state
     | \no-game => @render-start-menu game-state
     | \pause   => @render-pause-menu game-state
     | \game    => @render-game       game-state
     | \win     => @render-win-screen game-state
     | otherwise => @render-blank!
-    return this
+
+    @blit-to-canvas @output-canvas
+
+  append-to: (host) ->
+    host.append-child @output-canvas
 

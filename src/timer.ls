@@ -53,6 +53,10 @@ export class Timer
     @target-time = time
     @state = TIMER_ACTIVE
 
+  stop: ->
+    @current-time = 0
+    @state = TIMER_EXPIRED
+
   destroy: ->
     all-timers.splice (all-timers.index-of this), 1
 

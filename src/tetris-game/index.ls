@@ -4,9 +4,6 @@
 { id, log, rand } = require \std
 { random-from } = require \std
 
-{ GameState } = require \./game-state    # just proxy
-{ Timer }     = require \./timer
-
 Core  = require \./game-core
 
 
@@ -37,6 +34,7 @@ export class TetrisGame
       @score             = 0
       @metagame-state    = \game
       @timers.drop-timer.reset!
+      @timers.key-repeat-timer.reset!
     return game-state
 
   advance-game: ({ brick, arena, input-state }:gs) ->
@@ -54,9 +52,12 @@ export class TetrisGame
             brick.current.pos.0 += 1
         | \down =>
           gs.force-down-mode = on
-        | \action =>
+        | \action-a =>
           if Core.can-rotate brick.current, 1, arena
             Core.rotate-brick brick.current, 1
+        | \action-b =>
+          if Core.can-rotate brick.current, -1, arena
+            Core.rotate-brick brick.current, -1
 
       else if action is \up
         switch key
@@ -97,7 +98,6 @@ export class TetrisGame
         gs.metagame-state = \failure
 
   run-frame: ({ metagame-state }:game-state, Δt) ->
-    Timer.update-all Δt
     switch metagame-state
     | \failure => @show-fail-screen ...
     | \game => @advance-game ...
@@ -108,5 +108,5 @@ export class TetrisGame
 
 # Export
 
-module.exports = { TetrisGame, GameState }
+module.exports = { TetrisGame }
 

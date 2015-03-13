@@ -1,7 +1,7 @@
 
 # Require
 
-{ id, log, add-v2, rand, random-from } = require \std
+{ id, log, add-v2, rand, wrap, random-from } = require \std
 
 BrickShapes = require \./data/brick-shapes
 
@@ -94,7 +94,8 @@ export get-shape-of-rotation = (brick, rotation) ->
   BrickShapes[ brick.type ][ rotation ]
 
 export normalise-rotation = ({ type }, rotation) ->
-  rotation % BrickShapes[ type ].length
+  # rotation % BrickShapes[ type ].length
+  wrap 0, BrickShapes[ type ].length - 1, rotation
 
 export rotate-brick = ({ rotation, type }:brick, dir) ->
   brick.rotation = normalise-rotation brick, brick.rotation + dir

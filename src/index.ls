@@ -3,11 +3,14 @@
 
 { log, delay } = require \std
 
-{ CanvasRenderer }        = require \./renderers/canvas
-{ FrameDriver }           = require \./frame-driver
-{ InputHandler }          = require \./input-handler
-{ TetrisGame, GameState } = require \./tetris-game
+{ FrameDriver }  = require \./frame-driver
+{ InputHandler } = require \./input-handler
+{ Timer }        = require \./timer
+{ TetrisGame }   = require \./tetris-game
+{ GameState }    = require \./game-state
 
+{ CanvasRenderer } = require \./renderers/canvas
+{ DomRenderer }    = require \./renderers/dom
 
 { DebugOutput } = require \./debug-output
 
@@ -24,18 +27,16 @@ render-opts =
   z: 20
 
 input-handler = new InputHandler
-renderer      = new CanvasRenderer render-opts
 game-state    = new GameState game-opts
 tetris-game   = new TetrisGame game-state
-debug-output  = new DebugOutput
+#debug-output  = new DebugOutput
 
-#
-# Output
-#
+renderers =
+  new CanvasRenderer render-opts
+  new DomRenderer render-opts
 
-output-canvas  = document.get-element-by-id \canvas
-output-canvas.width  = 1 + 17 * render-opts.z
-output-canvas.height = 1 + 20 * render-opts.z
+for renderer in renderers
+  renderer.append-to document.body
 
 
 #
@@ -59,14 +60,12 @@ frame-driver = new FrameDriver (Δt, time, frame) ->
   game-state.elapsed-frames = frame
   game-state.input-state    = input-handler.changes-since-last-frame!
 
+  Timer.update-all Δt
+
   game-state := tetris-game.run-frame game-state, Δt
 
-  output-blitter = renderer.render game-state, render-opts
-
-  if debug-output?
-    debug-output.render game-state
-
-  output-blitter.blit-to-canvas output-canvas
+  for renderer in renderers
+    renderer.render game-state, render-opts
 
   #if game-state.metagame-state is \failure then frame-driver.stop!
 

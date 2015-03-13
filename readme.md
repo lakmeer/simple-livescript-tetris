@@ -19,7 +19,7 @@ GH Pages deployment soon
 
 - Arrows: obviously
 - Space: rotate (clockwise)
-- X: counter-clockwise
+- X: rotate clockwise
 - Z: counter-clockwise
 - Enter: Confirm/Proceed
 - Escape: Pause/Cancel

@@ -25,12 +25,16 @@ export class GameState
     force-down-mode: off
     elapsed-time: 0
     elapsed-frames: 0
-    timers: {}
+    timers:
+      drop-timer: null
+      force-drop-wait-tiemr: null
+      key-repeat-timer: null
     options:
       tile-width: 10
       tile-height: 18
       drop-speed: 500
       force-drop-wait-time: 100
+      key-repeat-time: 100
     arena:
       cells: [[]]
       width: 0
@@ -39,8 +43,9 @@ export class GameState
   (options) ->
     this <<< defaults
     this.options <<< options
-    @timers.drop-timer = new Timer @options.drop-speed
+    @timers.drop-timer            = new Timer @options.drop-speed
     @timers.force-drop-wait-timer = new Timer @options.force-drop-wait-time
+    @timers.key-repeat-timer      = new Timer @options.key-repeat-time
     @arena = @@new-arena @options.tile-width, @options.tile-height
 
   @new-arena = (width, height) ->

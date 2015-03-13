@@ -1,10 +1,12 @@
 
 # Require
 
-{ id, log } = require \std
-
+{ id, log, filter } = require \std
+{ Timer } = require \./timer
 
 # Reference Constants
+
+key-repeat-time = 150
 
 KEY =
   RETURN : 13
@@ -14,11 +16,15 @@ KEY =
   UP     : 38
   RIGHT  : 39
   DOWN   : 40
+  Z      : 90
+  X      : 88
 
 ACTION_NAME =
   "#{KEY.RETURN}" : \confirm
-  "#{KEY.ESCAPE}" : \back
-  "#{KEY.SPACE}"  : \action
+  "#{KEY.ESCAPE}" : \cancel
+  "#{KEY.SPACE}"  : \action-a
+  "#{KEY.X}"      : \action-a
+  "#{KEY.Z}"      : \action-b
   "#{KEY.LEFT}"   : \left
   "#{KEY.UP}"     : \up
   "#{KEY.RIGHT}"  : \right
@@ -27,10 +33,12 @@ ACTION_NAME =
 
 # Pure Helpers
 
-event-summary = (event-saver, key-direction) ->
-  ({ which }) ->
-    if ACTION_NAME[which]
-      event-saver key: that, action: key-direction
+event-summary = (key, state) ->
+  { key, action: if state then \down else \up }
+
+new-blank-keystate = ->
+  up: off, down: off, left: off, right: off,
+  action-a: off, action-b: off, confirm: off, cancel: off
 
 
 #
@@ -44,17 +52,34 @@ export class InputHandler
 
   ->
     log "InputHandler::new"
-    @state = saved-events: []
-    document.addEventListener \keydown, event-summary @save-event, \down
-    document.addEventListener \keyup,   event-summary @save-event, \up
 
-  save-event: (event-summary) ~>
-    @state.saved-events.push event-summary
+    document.addEventListener \keydown, @state-setter on
+    document.addEventListener \keyup,  @state-setter off
+
+    @curr-keystate = new-blank-keystate!
+    @last-keystate = new-blank-keystate!
+
+    @key-repeat-timer = new Timer key-repeat-time, true
+    @last-held-key = void
+
+  state-setter: (state, { which }) ~~>
+    if key = ACTION_NAME[which]
+      @curr-keystate[key] = state
+      if state is on and @last-held-key isnt key
+        @last-held-key = key
+        @key-repeat-timer.reset!
 
   changes-since-last-frame: ->
-    changes = @state.saved-events
-    @state.saved-events = []
-    return changes
+    if @key-repeat-timer.expired and @curr-keystate[@last-held-key] is on
+      @last-keystate[@last-held-key] = off
+      @key-repeat-timer.reset-with-remainder!
+
+    filter id,
+      for key, state of @curr-keystate
+        was-different = state isnt @last-keystate[key]
+        @last-keystate[key] = state
+        if was-different
+          event-summary key, state
 
   @debug-mode = ->
     document.addEventListener \keydown, ({ which }) ->
