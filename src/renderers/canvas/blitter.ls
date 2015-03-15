@@ -11,11 +11,17 @@
 #
 
 export class Blitter
-  (@opts, x, y) ->
+  (@opts, @w, @h) ->
     @canvas = document.create-element \canvas
-    @width  = @canvas.width  = x
-    @height = @canvas.height = y
+    @width  = @canvas.width  = @w
+    @height = @canvas.height = @h
     @ctx    = @canvas.get-context \2d
+
+  show-debug: ->
+    @canvas.style.background = \#f0f
+    @canvas.style.margin = \10px
+    @canvas.style.border = "2px solid #0f0"
+    document.body.append-child @canvas
 
   blit-to: (dest, x = 0, y = 0, alpha = 1) ->
     dest.ctx.global-alpha = alpha

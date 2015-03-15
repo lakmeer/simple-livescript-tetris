@@ -4,10 +4,8 @@
 { id, log, rand } = require \std
 { random-from } = require \std
 
-{ GameState } = require \./game-state    # just proxy
-{ Timer }     = require \./timer
-
-Core  = require \./game-core
+Core      = require \./game-core
+StartMenu = require \./start-menu
 
 
 # Pure Helpers
@@ -23,9 +21,14 @@ export class TetrisGame
   (game-state) ->
     log "TetrisGame::new"
 
+    # Each module should prime it's own chunk of the state
+    StartMenu.prime-game-state game-state
+    # ... and so on, when I get around to it
+
   show-fail-screen: (game-state, Δt) ->
     console.debug \FAILED
-    @begin-new-game game-state
+    game-state.metagame-state = \start-menu
+    StartMenu.prime-game-state game-state
 
   begin-new-game: (game-state) ->
     let this = game-state
@@ -37,6 +40,7 @@ export class TetrisGame
       @score             = 0
       @metagame-state    = \game
       @timers.drop-timer.reset!
+      @timers.key-repeat-timer.reset!
     return game-state
 
   advance-game: ({ brick, arena, input-state }:gs) ->
@@ -54,9 +58,12 @@ export class TetrisGame
             brick.current.pos.0 += 1
         | \down =>
           gs.force-down-mode = on
-        | \action =>
+        | \action-a =>
           if Core.can-rotate brick.current, 1, arena
             Core.rotate-brick brick.current, 1
+        | \action-b =>
+          if Core.can-rotate brick.current, -1, arena
+            Core.rotate-brick brick.current, -1
 
       else if action is \up
         switch key
@@ -96,17 +103,38 @@ export class TetrisGame
       if Core.top-is-reached arena
         gs.metagame-state = \failure
 
+  show-start-screen: ({ input-state, start-menu-state }:gs) ->
+
+    # Handle user input
+    while input-state.length
+      { key, action } = input-state.shift!
+      if action is \down
+        switch key
+        | \up =>
+          StartMenu.select-prev-item start-menu-state
+        | \down =>
+          StartMenu.select-next-item start-menu-state
+        | \action-a, \confirm =>
+          if start-menu-state.current-state.state is \start-game
+            @begin-new-game gs
+
+      else if action is \up
+        switch key
+        | \down =>
+          gs.force-down-mode = off
+
+
   run-frame: ({ metagame-state }:game-state, Δt) ->
-    Timer.update-all Δt
     switch metagame-state
-    | \failure => @show-fail-screen ...
-    | \game => @advance-game ...
-    | \no-game => @begin-new-game ...
+    | \failure     => @show-fail-screen ...
+    | \game        => @advance-game ...
+    | \no-game     => game-state.metagame-state = \start-menu
+    | \start-menu  => @show-start-screen ...
     | otherwise => console.debug 'Unknown metagame-state:', metagame-state
     return game-state
 
 
 # Export
 
-module.exports = { TetrisGame, GameState }
+module.exports = { TetrisGame }
 

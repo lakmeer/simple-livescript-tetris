@@ -8,6 +8,7 @@
 { ArenaView }     = require \./arena
 { BrickView }     = require \./brick
 { NextBrickView } = require \./next-brick
+{ StartMenuView } = require \./start-menu
 
 
 #
@@ -22,14 +23,25 @@ export class CanvasRenderer extends Blitter
     @z = z = @opts.z
     super @opts, 17 * z, 20 * z
 
+    # Blitters
     @arena = new ArenaView     @opts, 10 * z + 2, 18 * z + 2
     @brick = new BrickView     @opts,  4 * z, 4 * z
     @next  = new NextBrickView @opts,  4 * z, 4 * z
+    @start = new StartMenuView @opts, 17 * z, 20 * z
 
-    #@frame = new FrameView 25 * z, 20 * z
+    # Final Output
+    @output-canvas  = document.get-element-by-id \canvas
+    @output-canvas.width  = 17 * @opts.z
+    @output-canvas.height = 20 * @opts.z
 
-  render-start-menu: ->
-    log \render-start-menu
+    @state = {}
+
+  render-start-menu: ({ start-menu-state }:gs) ->
+    @clear!
+    if @state.last-start-menu-index isnt gs.start-menu-state.current-index
+      @start.render start-menu-state
+    @start.blit-to this, 0, 0
+    @state.last-start-menu-index = gs.start-menu-state.current-index
 
   render-blank: ->
     @clear!
@@ -52,10 +64,14 @@ export class CanvasRenderer extends Blitter
 
   render: ({ metagame-state }:game-state) ->
     switch metagame-state
-    | \no-game => @render-start-menu game-state
-    | \pause   => @render-pause-menu game-state
-    | \game    => @render-game       game-state
-    | \win     => @render-win-screen game-state
+    | \start-menu => @render-start-menu game-state
+    | \pause      => @render-pause-menu game-state
+    | \game       => @render-game       game-state
+    | \win        => @render-win-screen game-state
     | otherwise => @render-blank!
-    return this
+
+    @blit-to-canvas @output-canvas
+
+  append-to: (host) ->
+    host.append-child @output-canvas
 
