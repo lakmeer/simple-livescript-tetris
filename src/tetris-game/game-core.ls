@@ -12,7 +12,7 @@ BrickShapes = require \./data/brick-shapes
 # Contains main logic for doing operations inside the tetris game itself. Other
 # stuff like menus and things don't go in here.
 #
-# Ideally this should juist be a collection of stateless processing functions.
+# Ideally this should just be a collection of stateless processing functions.
 #
 
 export can-drop = (brick, arena) ->
