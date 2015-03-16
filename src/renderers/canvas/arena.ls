@@ -1,7 +1,7 @@
 
 # Require
 
-{ id, log } = require \std
+{ id, log, rand, floor } = require \std
 
 { Palette } = require \./palette
 { Blitter } = require \./blitter
@@ -44,9 +44,22 @@ export class ArenaView extends Blitter
 
     @grid.ctx.stroke!
 
-  render: ({ cells, width, height }, { z }) ->
+  draw-row-removal: (width, size, y, mode = 1) ->
+    for x from 0 to width
+      @cells.ctx.fill-style = if mode then Palette.neutral.0 else Palette.neutral.3
+      @cells.ctx.fill-rect 1 + x * size, 1 + y * size, size - 1, size - 1
+
+  render: ({{ cells, width, height }:arena, rows-to-remove, timers }, { z }) ->
     @clear!
-    @ctx.fill-style = Palette.neutral.3
+
+    zz = rows-to-remove.length
+    p = 33 + floor (255 - 33)/4 * zz * (1 - timers.removal-animation.progress)
+
+    if rows-to-remove.length > 0
+      @ctx.fill-style = "rgb(#p,#p,#p)"
+    else
+      @ctx.fill-style = Palette.neutral.3
+
     @ctx.fill-rect 0, 0, width * z, height * z
     @ctx.stroke-style = Palette.neutral.2
     @ctx.stroke-rect 0.5, 0.5, width * z + 1, height * z + 1
@@ -54,6 +67,14 @@ export class ArenaView extends Blitter
     #@draw-grid width, height, z
     @draw-cells cells, z
 
-    @grid.blit-to this
-    @cells.blit-to this, 0, 0, 0.9
+    for row-ix in rows-to-remove
+      if (floor timers.removal-animation.current-time) % 2
+        @draw-row-removal width, z, row-ix, 1
+      else
+        @draw-row-removal width, z, row-ix, 0
+
+    blit-jitter = [ (rand -zz, zz), (rand -zz, zz) ]
+
+    @grid.blit-to this, blit-jitter.0, blit-jitter.1
+    @cells.blit-to this, blit-jitter.0, blit-jitter.1, 0.9
 

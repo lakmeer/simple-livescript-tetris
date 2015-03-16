@@ -18,17 +18,27 @@ KEY =
   DOWN   : 40
   Z      : 90
   X      : 88
+  ONE    : 49
+  TWO    : 50
+  THREE  : 51
+  FOUR   : 52
+  FIVE   : 53
 
 ACTION_NAME =
   "#{KEY.RETURN}" : \confirm
   "#{KEY.ESCAPE}" : \cancel
-  "#{KEY.SPACE}"  : \action-a
-  "#{KEY.X}"      : \action-a
-  "#{KEY.Z}"      : \action-b
+  "#{KEY.SPACE}"  : \hard-drop
+  "#{KEY.X}"      : \cw
+  "#{KEY.Z}"      : \ccw
+  "#{KEY.UP}"     : \cw
   "#{KEY.LEFT}"   : \left
-  "#{KEY.UP}"     : \up
   "#{KEY.RIGHT}"  : \right
   "#{KEY.DOWN}"   : \down
+  "#{KEY.ONE}"    : \debug-1
+  "#{KEY.TWO}"    : \debug-2
+  "#{KEY.THREE}"  : \debug-3
+  "#{KEY.FOUR}"   : \debug-4
+  "#{KEY.FIVE}"   : \debug-5
 
 
 # Pure Helpers

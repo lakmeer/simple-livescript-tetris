@@ -60,6 +60,10 @@ export class Timer
   destroy: ->
     all-timers.splice (all-timers.index-of this), 1
 
+  run-for: (time) ->
+    @time-to-expiry = time
+    @state = TIMER_ACTIVE
+
   to-string: -> """
     TIMER: #{@target-time}
     STATE: #{@state} (#{@active}|#{@expired})

@@ -11,6 +11,9 @@ template =
   cell: ->
     if it then "▒▒" else "  "
 
+  score: ->
+    JSON.stringify this, null, 2
+
   brick: ->
     @shape.map (.map template.cell .join ' ') .join "\n        "
 
@@ -22,21 +25,15 @@ template =
       "(no change)"
 
   normal: -> """
-     NEXT :
-   #{template.brick.apply @brick.next}
-
-    score - #{@score}
+    score - #{template.score.apply @score}
     lines - #{@lines}
 
      meta - #{@metagame-state}
      time - #{@elapsed-time}
     frame - #{@elapsed-frames}
      keys - #{template.keys.apply @input-state}
-     drop - #{if @force-down-mode then \force else \auto}
-
-
+     drop - #{if @force-down-mode then \soft else \auto}
   """
-    #brick - #{template.brick.apply @brick.current}
 
 
 #
@@ -53,6 +50,9 @@ export class DebugOutput
     document.body.append-child @dbo
 
   render: (state) ->
-    @dbo.innerText = template.normal.apply state
-
+    switch state.metagame-state
+    | \game         => @dbo.innerText = template.normal.apply state
+    | \start-menu   => @dbo.innerText = "Start menu"
+    | \remove-lines => @dbo.innerText = template.normal.apply state
+    | otherwise     => @dbo.innerText = "Unknown metagame state: " + state.metagame-state
 

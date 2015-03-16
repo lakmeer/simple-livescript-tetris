@@ -10,7 +10,7 @@ export yellow  = <[ #eeee11 #ffffaa #ccbb00 #555511 ]>
 export cyan    = <[ #44ddff #aae3ff #00aacc #006699 ]>
 
 export tile-colors =
-  [ neutral.2, red.0, orange.0, yellow.0, green.0, cyan.0, blue.2, magenta.0 ]
+  [ neutral.2, red.0, orange.0, yellow.0, green.0, cyan.0, blue.2, magenta.0, \white ]
 
 export Palette =
   { neutral, red, orange, yellow, green, cyan, blue, magenta, tile-colors }
