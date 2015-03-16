@@ -58,12 +58,17 @@ export class TetrisGame
             brick.current.pos.0 += 1
         | \down =>
           gs.force-down-mode = on
-        | \action-a =>
+        | \cw =>
           if Core.can-rotate brick.current, 1, arena
             Core.rotate-brick brick.current, 1
-        | \action-b =>
+        | \ccw =>
           if Core.can-rotate brick.current, -1, arena
             Core.rotate-brick brick.current, -1
+        | \hard-drop =>
+          while Core.can-drop brick.current, arena
+            brick.current.pos.1 += 1
+          gs.input-state = []
+          gs.timers.drop-timer.time-to-expiry = -1
 
       else if action is \up
         switch key

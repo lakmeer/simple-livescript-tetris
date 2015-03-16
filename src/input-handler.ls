@@ -22,11 +22,11 @@ KEY =
 ACTION_NAME =
   "#{KEY.RETURN}" : \confirm
   "#{KEY.ESCAPE}" : \cancel
-  "#{KEY.SPACE}"  : \action-a
-  "#{KEY.X}"      : \action-a
-  "#{KEY.Z}"      : \action-b
+  "#{KEY.SPACE}"  : \hard-drop
+  "#{KEY.X}"      : \cw
+  "#{KEY.Z}"      : \ccw
+  "#{KEY.UP}"     : \cw
   "#{KEY.LEFT}"   : \left
-  "#{KEY.UP}"     : \up
   "#{KEY.RIGHT}"  : \right
   "#{KEY.DOWN}"   : \down
 
