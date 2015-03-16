@@ -29,7 +29,6 @@ render-opts =
 input-handler = new InputHandler
 game-state    = new GameState game-opts
 tetris-game   = new TetrisGame game-state
-#debug-output  = new DebugOutput
 
 renderers =
   new CanvasRenderer render-opts
@@ -43,6 +42,7 @@ for renderer in renderers
 # Debug
 #
 
+debug-output = new DebugOutput
 #InputHandler.debug-mode!
 InputHandler.on 192, ->
   if frame-driver.state.running
@@ -66,6 +66,9 @@ frame-driver = new FrameDriver (Δt, time, frame) ->
 
   for renderer in renderers
     renderer.render game-state, render-opts
+
+  if debug-output
+    debug-output.render game-state
 
   #if game-state.metagame-state is \failure then frame-driver.stop!
 

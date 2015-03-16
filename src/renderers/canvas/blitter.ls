@@ -33,6 +33,10 @@ export class Blitter
     ctx.clear-rect 0, 0 dest-canvas.width, dest-canvas.height
     ctx.draw-image @canvas, 0, 0, dest-canvas.width, dest-canvas.height
 
-  clear: ->
-    @ctx.clear-rect 0, 0, @width, @height
+  clear: (color) ->
+    if color?
+      @ctx.fill-color = color
+      @ctx.fill-rect 0, 0, @width, @height
+    else
+      @ctx.clear-rect 0, 0, @width, @height
 

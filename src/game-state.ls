@@ -16,8 +16,13 @@ export class GameState
 
   defaults =
     metagame-state: \no-game
-    score: 0
-    lines: 0
+    score:
+      points: 0
+      lines: 0
+      singles: 0
+      doubles: 0
+      triples: 0
+      tetris: 0
     brick:
       next: void
       current: void
@@ -29,16 +34,19 @@ export class GameState
       drop-timer: null
       force-drop-wait-tiemr: null
       key-repeat-timer: null
+      removal-animation: null
     options:
       tile-width: 10
       tile-height: 18
       drop-speed: 500
       force-drop-wait-time: 100
+      removal-animation-time: 500
       key-repeat-time: 100
     arena:
       cells: [[]]
       width: 0
       height: 0
+    rows-to-remove: []
 
   (options) ->
     this <<< defaults
@@ -46,6 +54,7 @@ export class GameState
     @timers.drop-timer            = new Timer @options.drop-speed
     @timers.force-drop-wait-timer = new Timer @options.force-drop-wait-time
     @timers.key-repeat-timer      = new Timer @options.key-repeat-time
+    @timers.removal-animation     = new Timer @options.removal-animation-time
     @arena = @@new-arena @options.tile-width, @options.tile-height
 
   @new-arena = (width, height) ->

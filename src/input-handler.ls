@@ -18,6 +18,11 @@ KEY =
   DOWN   : 40
   Z      : 90
   X      : 88
+  ONE    : 49
+  TWO    : 50
+  THREE  : 51
+  FOUR   : 52
+  FIVE   : 53
 
 ACTION_NAME =
   "#{KEY.RETURN}" : \confirm
@@ -29,6 +34,11 @@ ACTION_NAME =
   "#{KEY.LEFT}"   : \left
   "#{KEY.RIGHT}"  : \right
   "#{KEY.DOWN}"   : \down
+  "#{KEY.ONE}"    : \debug-1
+  "#{KEY.TWO}"    : \debug-2
+  "#{KEY.THREE}"  : \debug-3
+  "#{KEY.FOUR}"   : \debug-4
+  "#{KEY.FIVE}"   : \debug-5
 
 
 # Pure Helpers
