@@ -1,7 +1,7 @@
 
 # Require
 
-{ id, log, add-v2, rand, wrap, random-from } = require \std
+{ id, log, add-v2, rand-int, wrap, random-from } = require \std
 
 BrickShapes = require \./data/brick-shapes
 
@@ -69,7 +69,7 @@ export is-complete = (row) ->
       return false
   return true
 
-export new-brick = (ix = rand 0, BrickShapes.all.length) ->
+export new-brick = (ix = rand-int 0, BrickShapes.all.length) ->
   rotation: 0
   shape: BrickShapes.all[ix].shapes.0
   type: BrickShapes.all[ix].type

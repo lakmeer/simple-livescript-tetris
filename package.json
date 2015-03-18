@@ -25,7 +25,9 @@
     "vinyl-source-stream": "^1.0.0"
   },
   "browser": {
-    "std": "./src/std/index.ls"
+    "std": "./src/std/index.ls",
+    "THREE": "./lib/three.min.js",
+    "three-js-vr-extensions": "./lib/mozvr/index.js"
   },
   "browserify": {
     "transform": [

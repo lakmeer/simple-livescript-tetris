@@ -9,8 +9,9 @@
 { TetrisGame }   = require \./tetris-game
 { GameState }    = require \./game-state
 
-{ CanvasRenderer } = require \./renderers/canvas
-{ DomRenderer }    = require \./renderers/dom
+{ CanvasRenderer }  = require \./renderers/canvas
+{ DomRenderer }     = require \./renderers/dom
+{ ThreeJsRenderer } = require \./renderers/threejs
 
 { DebugOutput } = require \./debug-output
 
@@ -30,9 +31,11 @@ input-handler = new InputHandler
 game-state    = new GameState game-opts
 tetris-game   = new TetrisGame game-state
 
-renderers =
-  new CanvasRenderer render-opts
-  new DomRenderer render-opts
+renderers = [
+  #new CanvasRenderer render-opts
+  #new DomRenderer render-opts
+  new ThreeJsRenderer render-opts, game-state
+]
 
 for renderer in renderers
   renderer.append-to document.body
@@ -70,8 +73,6 @@ frame-driver = new FrameDriver (Δt, time, frame) ->
   if debug-output
     debug-output.render game-state
 
-  #if game-state.metagame-state is \failure then frame-driver.stop!
-
 
 # Init
 
@@ -80,4 +81,5 @@ delay 1000, -> game-state.input-state.push { key: \left, action: \down }
 delay 1000, -> game-state.input-state.push { key: \left, action: \up }
 #delay 30000, frame-driver~stop
 
+tetris-game.begin-new-game game-state
 
