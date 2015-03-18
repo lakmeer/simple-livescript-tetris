@@ -30,7 +30,7 @@ ACTION_NAME =
   "#{KEY.SPACE}"  : \hard-drop
   "#{KEY.X}"      : \cw
   "#{KEY.Z}"      : \ccw
-  "#{KEY.UP}"     : \cw
+  "#{KEY.UP}"     : \up
   "#{KEY.LEFT}"   : \left
   "#{KEY.RIGHT}"  : \right
   "#{KEY.DOWN}"   : \down
@@ -69,20 +69,20 @@ export class InputHandler
     @curr-keystate = new-blank-keystate!
     @last-keystate = new-blank-keystate!
 
-    @key-repeat-timer = new Timer key-repeat-time, true
-    @last-held-key = void
+    #@key-repeat-timer = new Timer key-repeat-time, true
+    #@last-held-key = void
 
   state-setter: (state, { which }) ~~>
     if key = ACTION_NAME[which]
       @curr-keystate[key] = state
       if state is on and @last-held-key isnt key
         @last-held-key = key
-        @key-repeat-timer.reset!
+        #@key-repeat-timer.reset!
 
   changes-since-last-frame: ->
-    if @key-repeat-timer.expired and @curr-keystate[@last-held-key] is on
-      @last-keystate[@last-held-key] = off
-      @key-repeat-timer.reset-with-remainder!
+    #if @key-repeat-timer.expired and @curr-keystate[@last-held-key] is on
+    #  @last-keystate[@last-held-key] = off
+    #  @key-repeat-timer.reset-with-remainder!
 
     filter id,
       for key, state of @curr-keystate

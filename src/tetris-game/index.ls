@@ -49,9 +49,7 @@ export class TetrisGame
       gs.rows-to-remove = []
       gs.metagame-state = \game
 
-  advance-game: ({ brick, arena, input-state }:gs) ->
-
-    # Handle user input
+  handle-key-input: ({ brick, arena, input-state }:gs) ->
     while input-state.length
       { key, action } = input-state.shift!
       if action is \down
@@ -63,8 +61,9 @@ export class TetrisGame
           if Core.can-move brick.current, [ 1, 0 ], arena
             brick.current.pos.0 += 1
         | \down =>
+          #gs.timers.drop-timer.time-to-expiry = 0
           gs.force-down-mode = on
-        | \cw =>
+        | \up, \cw =>
           if Core.can-rotate brick.current, 1, arena
             Core.rotate-brick brick.current, 1
         | \ccw =>
@@ -87,26 +86,7 @@ export class TetrisGame
         | \down =>
           gs.force-down-mode = off
 
-    # If the game is in force-down mode, drop the brick every frame
-    if gs.force-down-mode and gs.timers.force-drop-wait-timer.expired
-      if Core.can-drop brick.current, arena
-        brick.current.pos.1 += 1
-      else
-        Core.copy-brick-to-arena brick.current, arena
-        gs.force-down-mode = off
-        gs.timers.force-drop-wait-timer.reset!
-        gs.timers.drop-timer.time-to-expiry = gs.timers.force-drop-wait-timer.target-time
-
-    # If the drop-timer has expired, drop current brick.
-    if gs.timers.drop-timer.expired
-      gs.timers.drop-timer.reset-with-remainder!
-
-      # If it hits, save it to the arena and make a new one
-      if Core.can-drop brick.current, arena
-        brick.current.pos.1 += 1
-      else
-        Core.copy-brick-to-arena brick.current, arena
-        Core.spawn-new-brick gs
+  advance-game: ({ brick, arena, input-state }:gs) ->
 
     # Check for completed lines.
     complete-rows = [ ix for row, ix in arena.cells when Core.is-complete row ]
@@ -121,10 +101,45 @@ export class TetrisGame
 
       # Add any dropped lines to score
       Core.compute-score gs.score, gs.rows-to-remove
+      return
 
     # Check if top has been reached. If so, change game mode to fail
     if Core.top-is-reached arena
       gs.metagame-state = \failure
+      return
+
+    # If the game is in force-down mode, drop the brick every frame
+    if gs.force-down-mode #and gs.timers.force-drop-wait-timer.expired
+      gs.timers.drop-timer.time-to-expiry = 0
+
+    # If the drop-timer has expired, drop current brick.
+    if gs.timers.drop-timer.expired
+      gs.timers.drop-timer.reset-with-remainder!
+
+      # If it hits, save it to the arena and make a new one
+      if Core.can-drop brick.current, arena
+        brick.current.pos.1 += 1
+      else
+        Core.copy-brick-to-arena brick.current, arena
+        Core.spawn-new-brick gs
+        gs.force-down-mode = off
+
+    #
+    # If nothing else going on this frame, THEN handle user input
+    #
+
+    @handle-key-input gs
+
+
+      #if Core.can-drop brick.current, arena
+      #  brick.current.pos.1 += 1
+      #else
+      #  Core.copy-brick-to-arena brick.current, arena
+      #  gs.force-down-mode = off
+      #  gs.timers.force-drop-wait-timer.reset!
+      #  gs.timers.drop-timer.time-to-expiry = gs.timers.force-drop-wait-timer.target-time
+
+
 
   show-start-screen: ({ input-state, start-menu-state }:gs) ->
 

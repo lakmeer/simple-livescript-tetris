@@ -55,7 +55,7 @@ export class ArenaView extends Blitter
     zz = rows-to-remove.length
     p = 33 + floor (255 - 33)/4 * zz * (1 - timers.removal-animation.progress)
 
-    if rows-to-remove.length > 0
+    if rows-to-remove.length > 3
       @ctx.fill-style = "rgb(#p,#p,#p)"
     else
       @ctx.fill-style = Palette.neutral.3
