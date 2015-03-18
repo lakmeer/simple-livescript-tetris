@@ -73,7 +73,7 @@ export class ArenaView extends Blitter
       else
         @draw-row-removal width, z, row-ix, 0
 
-    blit-jitter = [ (rand -zz, zz), (rand -zz, zz) ]
+    blit-jitter = [ (floor rand -zz, zz), (floor rand -zz, zz) ]
 
     @grid.blit-to this, blit-jitter.0, blit-jitter.1
     @cells.blit-to this, blit-jitter.0, blit-jitter.1, 0.9

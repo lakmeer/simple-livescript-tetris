@@ -17,13 +17,19 @@ export floor = Math.floor
 
 export random = Math.random
 
-export rand = (min, max) -> min + floor random! * (max - min)
+export rand = (min, max) -> min + random! * (max - min)
+
+export rand-int = (min, max) -> min + floor random! * (max - min)
 
 export random-from = (list) -> list[ rand 0, list.length - 1 ]
 
 export add-v2 = (a, b) -> [ a.0 + b.0, a.1 + b.1 ]
 
 export filter = (λ, list) --> [ x for x in list when λ x ]
+
+export pi = Math.PI
+
+export tau = pi * 2
 
 export wrap = (min, max, n) -->
   if n > max then min
