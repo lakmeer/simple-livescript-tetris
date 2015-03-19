@@ -1,7 +1,7 @@
 
 # Require
 
-{ id, log, sin, pi, tau, rand, floor } = require \std
+{ id, log, sin, pi, tau, max, rand, floor } = require \std
 
 { Palette } = require \./palette
 
@@ -140,8 +140,8 @@ export class ThreeJsRenderer
       side: THREE.BackSide
 
     backing = new THREE.Mesh backing-geom, backing-mat
-      #@geom.arena-root.add backing
     backing.position <<< x: width/2 - 0.5, y: height/2 - 0.5, z: 0
+    #@geom.arena-root.add backing
 
     @geom.arena-cells =
       for row, y in cells
@@ -194,19 +194,6 @@ export class ThreeJsRenderer
       if state
         box.material = @zap-material
 
-  render-line-zap: ({ arena, rows-to-remove, timers }:gs) ->
-    on-off = (floor timers.removal-animation.current-time) % 2
-    zz     = rows-to-remove.length / 20
-    jitter = [ (rand -zz, zz), (rand -zz, zz) ]
-
-    for row-ix in rows-to-remove
-      @toggle-row-of-cells arena, row-ix, on-off
-
-    @geom.arena.position.x = jitter.0
-    @geom.arena.position.y = jitter.1
-
-    @effect.render @scene, @camera
-
   pretty-offset: (type) ->
     switch type
     | \square => [0 0]
@@ -216,6 +203,23 @@ export class ThreeJsRenderer
     | \right  => [0.5 0]
     | \tee    => [0.5 0]
     | \tetris => [0 -0.5]
+
+  calculate-jolt: ({ rows-to-remove, timers }:gs) ->
+    zz   = rows-to-remove.length
+    p    = max (1 - timers.hard-drop-effect.progress), (1 - timers.removal-animation.progress)
+    jolt = p * (1 - zz) * gs.options.hard-drop-jolt-amount / 1
+
+  render-line-zap: ({ arena, rows-to-remove, timers }:gs) ->
+    on-off = (floor timers.removal-animation.current-time) % 2
+    zz     = rows-to-remove.length / 20
+    jitter = [ (rand -zz, zz), (rand -zz, zz) ]
+
+    for row-ix in rows-to-remove
+      @toggle-row-of-cells arena, row-ix, on-off
+
+    @geom.arena.position.x = jitter.0
+    @geom.arena.position.y = jitter.1 + @calculate-jolt gs
+    @effect.render @scene, @camera
 
   render-arena: ({{ cells, width, height }:arena, brick }:gs) ->
 
@@ -237,6 +241,8 @@ export class ThreeJsRenderer
     @geom.next-offset.position.x = -1.5 + pretty-offset.0
     @geom.next-offset.position.y = -1.5 + pretty-offset.1
 
+    # Jitter and jolt
+    @geom.arena.position.y = @calculate-jolt gs
     @effect.render @scene, @camera
 
   render: (gs) ->
@@ -246,7 +252,7 @@ export class ThreeJsRenderer
     | \start-menu  => log \start-menu
     | \no-game     => log \no-game
     | \remove-lines => @render-line-zap gs
-    | otherwise => log "Unknown metagamestate:", gs.metagame-state
+    | otherwise => log "ThreeJsRenderer::render - Unknown metagamestate:", gs.metagame-state
 
   append-to: (host) ->
     host.append-child @output-canvas

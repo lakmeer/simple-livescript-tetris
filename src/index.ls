@@ -32,9 +32,9 @@ game-state    = new GameState game-opts
 tetris-game   = new TetrisGame game-state
 
 renderers = [
-  new CanvasRenderer render-opts
+  #new CanvasRenderer render-opts
   #new DomRenderer render-opts
-  #new ThreeJsRenderer render-opts, game-state
+  new ThreeJsRenderer render-opts, game-state
 ]
 
 for renderer in renderers
@@ -46,7 +46,7 @@ for renderer in renderers
 #
 
 debug-output = new DebugOutput
-InputHandler.debug-mode!
+#InputHandler.debug-mode!
 InputHandler.on 192, ->
   if frame-driver.state.running
     frame-driver.stop!
