@@ -31,6 +31,12 @@ export pi = Math.PI
 
 export tau = pi * 2
 
+export sin = Math.sin
+
+export cos = Math.cos
+
+export max = Math.max
+
 export wrap = (min, max, n) -->
   if n > max then min
   else if n < min then max

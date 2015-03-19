@@ -9,8 +9,8 @@
 { TetrisGame }   = require \./tetris-game
 { GameState }    = require \./game-state
 
-{ CanvasRenderer }  = require \./renderers/canvas
 { DomRenderer }     = require \./renderers/dom
+{ CanvasRenderer }  = require \./renderers/canvas
 { ThreeJsRenderer } = require \./renderers/threejs
 
 { DebugOutput } = require \./debug-output
@@ -63,7 +63,7 @@ frame-driver = new FrameDriver (Δt, time, frame) ->
   game-state.elapsed-frames = frame
   game-state.input-state    = input-handler.changes-since-last-frame!
 
-  Timer.update-all Δt
+  Timer.update-all Δt / 1
 
   game-state := tetris-game.run-frame game-state, Δt
 
@@ -77,8 +77,6 @@ frame-driver = new FrameDriver (Δt, time, frame) ->
 # Init
 
 frame-driver.start!
-delay 1000, -> game-state.input-state.push { key: \left, action: \down }
-delay 1000, -> game-state.input-state.push { key: \left, action: \up }
 #delay 30000, frame-driver~stop
 
 tetris-game.begin-new-game game-state

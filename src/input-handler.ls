@@ -23,6 +23,7 @@ KEY =
   THREE  : 51
   FOUR   : 52
   FIVE   : 53
+  SIX    : 54
 
 ACTION_NAME =
   "#{KEY.RETURN}" : \confirm

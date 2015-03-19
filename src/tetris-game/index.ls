@@ -70,9 +70,12 @@ export class TetrisGame
           if Core.can-rotate brick.current, -1, arena
             Core.rotate-brick brick.current, -1
         | \hard-drop =>
+          gs.hard-drop-distance = 0
           while Core.can-drop brick.current, arena
+            gs.hard-drop-distance += 1
             brick.current.pos.1 += 1
           gs.input-state = []
+          gs.timers.hard-drop-effect.run-for gs.hard-drop-distance * 10
           gs.timers.drop-timer.time-to-expiry = -1
         | \debug-1, \debug-2, \debug-3, \debug-4 =>
           amt = parse-int key.replace /\D/g, ''
@@ -80,6 +83,13 @@ export class TetrisGame
           log gs.rows-to-remove = for i from gs.arena.height - amt to gs.arena.height - 1 => i
           gs.metagame-state = \remove-lines
           gs.timers.removal-animation.run-for amt * 100
+        | \debug-5 =>  # Sets up tetris scenario
+          pos = gs.brick.current.pos
+          gs.brick.current = Core.new-brick 6
+          gs.brick.current.pos <<< pos
+          for y from (arena.height - 1) to (arena.height - 4) by -1
+            for x from 0 to arena.width - 2
+              arena.cells[y][x] = 1
 
       else if action is \up
         switch key
@@ -87,6 +97,9 @@ export class TetrisGame
           gs.force-down-mode = off
 
   advance-game: ({ brick, arena, input-state }:gs) ->
+
+    # Reset one-frame-only state flags
+    #gs.hard-drop-distance = 0
 
     # Check for completed lines.
     complete-rows = [ ix for row, ix in arena.cells when Core.is-complete row ]

@@ -38,9 +38,12 @@ export class GameState
     options:
       tile-width: 10
       tile-height: 18
-      drop-speed: 500
+      tile-size: 20
+      hard-drop-jolt-amount: 0.35
+      drop-speed: 300
       force-drop-wait-time: 100
       removal-animation-time: 500
+      hard-drop-effect-time: 100
       key-repeat-time: 100
     arena:
       cells: [[]]
@@ -55,6 +58,7 @@ export class GameState
     @timers.force-drop-wait-timer = new Timer @options.force-drop-wait-time
     @timers.key-repeat-timer      = new Timer @options.key-repeat-time
     @timers.removal-animation     = new Timer @options.removal-animation-time
+    @timers.hard-drop-effect      = new Timer @options.hard-drop-effect-time
     @arena = @@new-arena @options.tile-width, @options.tile-height
 
   @new-arena = (width, height) ->

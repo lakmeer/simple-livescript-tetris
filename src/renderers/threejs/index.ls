@@ -1,7 +1,7 @@
 
 # Require
 
-{ id, log, pi, tau, rand, floor } = require \std
+{ id, log, sin, pi, tau, max, rand, floor } = require \std
 
 { Palette } = require \./palette
 
@@ -33,12 +33,13 @@ export class ThreeJsRenderer
 
     # Listen for double click event to enter full-screen VR mode
     go-fullscreen = ~>
+      log \go-fullscreen?
       @effect.set-full-screen yes
 
-    # Zero positional sensor on 'Z'
+    # Zero positional sensor on 'V'
     on-key = ({ key-code }:event) ~>
       event.prevent-default!
-      if key-code is 90 then controls.zero-sensor!
+      if key-code is 86 then @controls.zero-sensor!
 
     # Handle window resizes
     on-resize = ~>
@@ -139,8 +140,8 @@ export class ThreeJsRenderer
       side: THREE.BackSide
 
     backing = new THREE.Mesh backing-geom, backing-mat
-      #@geom.arena-root.add backing
     backing.position <<< x: width/2 - 0.5, y: height/2 - 0.5, z: 0
+    #@geom.arena-root.add backing
 
     @geom.arena-cells =
       for row, y in cells
@@ -163,6 +164,7 @@ export class ThreeJsRenderer
 
     @geom.next.add @geom.next-offset
     @geom.next.position <<< x: -0.5, y: height/2 + 3.5, z: -20
+    @geom.next.rotation.x = pi
 
     next-box = new THREE.Mesh bounds-geom, bounds-mat
     #@geom.next.add next-box
@@ -192,19 +194,6 @@ export class ThreeJsRenderer
       if state
         box.material = @zap-material
 
-  render-line-zap: ({ arena, rows-to-remove, timers }:gs) ->
-    on-off = (floor timers.removal-animation.current-time) % 2
-    zz     = rows-to-remove.length / 20
-    jitter = [ (rand -zz, zz), (rand -zz, zz) ]
-
-    for row-ix in rows-to-remove
-      @toggle-row-of-cells arena, row-ix, on-off
-
-    @geom.arena.position.x = jitter.0
-    @geom.arena.position.y = jitter.1
-
-    @effect.render @scene, @camera
-
   pretty-offset: (type) ->
     switch type
     | \square => [0 0]
@@ -214,6 +203,23 @@ export class ThreeJsRenderer
     | \right  => [0.5 0]
     | \tee    => [0.5 0]
     | \tetris => [0 -0.5]
+
+  calculate-jolt: ({ rows-to-remove, timers }:gs) ->
+    zz   = rows-to-remove.length
+    p    = max (1 - timers.hard-drop-effect.progress), (1 - timers.removal-animation.progress)
+    jolt = p * (1 - zz) * gs.options.hard-drop-jolt-amount / 1
+
+  render-line-zap: ({ arena, rows-to-remove, timers }:gs) ->
+    on-off = (floor timers.removal-animation.current-time) % 2
+    zz     = rows-to-remove.length / 20
+    jitter = [ (rand -zz, zz), (rand -zz, zz) ]
+
+    for row-ix in rows-to-remove
+      @toggle-row-of-cells arena, row-ix, on-off
+
+    @geom.arena.position.x = jitter.0
+    @geom.arena.position.y = jitter.1 + @calculate-jolt gs
+    @effect.render @scene, @camera
 
   render-arena: ({{ cells, width, height }:arena, brick }:gs) ->
 
@@ -230,20 +236,23 @@ export class ThreeJsRenderer
 
     # Update preview
     @map-brick-shape-to-boxes @geom.next-cells, brick.next.shape
-    @geom.next.rotation.y += 0.03
+    @geom.next.rotation.y = 0.2 * sin gs.elapsed-time / 500
     pretty-offset = @pretty-offset brick.next.type
     @geom.next-offset.position.x = -1.5 + pretty-offset.0
     @geom.next-offset.position.y = -1.5 + pretty-offset.1
 
+    # Jitter and jolt
+    @geom.arena.position.y = @calculate-jolt gs
     @effect.render @scene, @camera
 
   render: (gs) ->
+    @controls.update!
     switch gs.metagame-state
     | \game => @render-arena gs
     | \start-menu  => log \start-menu
     | \no-game     => log \no-game
     | \remove-lines => @render-line-zap gs
-    | otherwise => log "Unknown metagamestate:", gs.metagame-state
+    | otherwise => log "ThreeJsRenderer::render - Unknown metagamestate:", gs.metagame-state
 
   append-to: (host) ->
     host.append-child @output-canvas
