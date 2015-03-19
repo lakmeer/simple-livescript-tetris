@@ -1,7 +1,7 @@
 
 # Require
 
-{ id, log, pi, tau, rand, floor } = require \std
+{ id, log, sin, pi, tau, rand, floor } = require \std
 
 { Palette } = require \./palette
 
@@ -33,12 +33,13 @@ export class ThreeJsRenderer
 
     # Listen for double click event to enter full-screen VR mode
     go-fullscreen = ~>
+      log \go-fullscreen?
       @effect.set-full-screen yes
 
-    # Zero positional sensor on 'Z'
+    # Zero positional sensor on 'V'
     on-key = ({ key-code }:event) ~>
       event.prevent-default!
-      if key-code is 90 then controls.zero-sensor!
+      if key-code is 86 then @controls.zero-sensor!
 
     # Handle window resizes
     on-resize = ~>
@@ -163,6 +164,7 @@ export class ThreeJsRenderer
 
     @geom.next.add @geom.next-offset
     @geom.next.position <<< x: -0.5, y: height/2 + 3.5, z: -20
+    @geom.next.rotation.x = pi
 
     next-box = new THREE.Mesh bounds-geom, bounds-mat
     #@geom.next.add next-box
@@ -230,7 +232,7 @@ export class ThreeJsRenderer
 
     # Update preview
     @map-brick-shape-to-boxes @geom.next-cells, brick.next.shape
-    @geom.next.rotation.y += 0.03
+    @geom.next.rotation.y = 0.2 * sin gs.elapsed-time / 500
     pretty-offset = @pretty-offset brick.next.type
     @geom.next-offset.position.x = -1.5 + pretty-offset.0
     @geom.next-offset.position.y = -1.5 + pretty-offset.1
@@ -238,6 +240,7 @@ export class ThreeJsRenderer
     @effect.render @scene, @camera
 
   render: (gs) ->
+    @controls.update!
     switch gs.metagame-state
     | \game => @render-arena gs
     | \start-menu  => log \start-menu

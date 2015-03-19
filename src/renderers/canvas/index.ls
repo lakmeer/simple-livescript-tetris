@@ -30,7 +30,7 @@ export class CanvasRenderer extends Blitter
     @start = new StartMenuView  @opts, 17 * z, 20 * z
 
     # Final Output
-    @output-canvas  = document.get-element-by-id \canvas
+    @output-canvas = document.create-element \canvas
     @output-canvas.width  = 17 * @opts.z
     @output-canvas.height = 20 * @opts.z
 
