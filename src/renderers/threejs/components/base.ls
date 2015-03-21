@@ -34,3 +34,7 @@ export class Base
   position:~
     -> @root.position
 
+  visible:~
+    -> @root.visible
+    (state) -> @root.visible = state
+

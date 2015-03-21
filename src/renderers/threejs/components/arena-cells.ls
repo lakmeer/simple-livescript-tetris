@@ -35,6 +35,7 @@ export class ArenaCells extends Base
         for cell, x in row
           cube = new THREE.Mesh @geom.box, @mats.normal
           cube.position <<< { x, y }
+          cube.visible = false
           @offset.add cube
           cube
 

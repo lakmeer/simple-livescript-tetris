@@ -7,7 +7,7 @@ THREE = require \three-js-vr-extensions # puts THREE in global scope
 
 { Palette } = require \./palette
 { SceneManager } = require \./scene-manager
-{ Table, Frame, Brick, Lighting, GuideLines, ArenaCells, BrickPreview } = require \./components
+{ Title, Table, Frame, Brick, Lighting, GuideLines, ArenaCells, BrickPreview } = require \./components
 
 
 #
@@ -26,6 +26,7 @@ export class ThreeJsRenderer
 
     # Build scene
     @parts =
+      title       : new Title        @opts, gs
       table       : new Table        @opts, gs
       frame       : new Frame        @opts, gs
       lighting    : new Lighting     @opts, gs
@@ -55,13 +56,15 @@ export class ThreeJsRenderer
 
     @parts.arena-cells.show-bounds @scene-man.root
     @parts.this-brick.show-bounds @scene-man.root
+    @parts.title.show-bounds @scene-man.root
 
-    @scene-man.camera.position <<< x: 10, y: 20, z: 10
+    #@scene-man.camera.position <<< x: 10, y: 15, z: 10
     @scene-man.camera.look-at new THREE.Vector3 0, 10, 0
 
   position-debug-camera: (gs) ->
+    return
     r = 15
-    phase = pi/4 * sin gs.elapsed-time / 10000
+    phase = pi/10 * sin gs.elapsed-time / 1000
     @scene-man.camera.position.x = r * sin phase
     @scene-man.camera.position.z = r * cos phase
     @scene-man.camera.look-at new THREE.Vector3 0, 10, 0
@@ -82,14 +85,18 @@ export class ThreeJsRenderer
     jolt = @calculate-jolt gs
     @parts.arena-cells.show-zap-effect jolt, gs
     @scene-man.root.position.y = jolt
-    #@position-debug-camera gs
+    @position-debug-camera gs
 
   render-arena: ({ arena, brick }:gs) ->
+    @parts.title.visible = false
     @parts.arena-cells.update-cells arena.cells
 
     # Update falling brick
     @parts.this-brick.display-shape brick.current
     @parts.this-brick.update-pos brick.current.pos
+
+    # Show lines
+    @parts.guide-lines.show-beam brick.current
 
     # Update preview brick
     @parts.next-brick.display-shape brick.next
@@ -101,11 +108,15 @@ export class ThreeJsRenderer
     # Debug camera-motion
     @position-debug-camera gs
 
+  render-start-menu: (gs) ->
+    @parts.title.visible = true
+    @position-debug-camera gs
+
   render: (gs) ->
     @scene-man.update!
     switch gs.metagame-state
     | \game => @render-arena gs
-    | \start-menu  => log \start-menu
+    | \start-menu  => @render-start-menu gs
     | \no-game     => log \no-game
     | \remove-lines => @render-line-zap gs
     | otherwise => log "ThreeJsRenderer::render - Unknown metagamestate:", gs.metagame-state

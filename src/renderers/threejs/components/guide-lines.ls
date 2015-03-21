@@ -8,6 +8,16 @@
 { line-materials } = require \../palette
 
 
+# Helpers
+
+rows-to-cols = (rows) ->
+  cols = []
+  for y from 0 til rows.0.length
+    for x from 0 til rows.length
+      cols[][y][x] = rows[x][y]
+  return cols
+
+
 #
 # Class
 #
@@ -32,4 +42,13 @@ export class GuideLines extends Base
       line.position <<< x: i, y: 0
       @lines.push line
       @registration.add line
+
+  show-beam: (brick) ->
+    for line in @lines
+      line.material = line-materials[0]
+
+    for row, y in brick.shape
+      for cell, x in row
+        if cell
+          @lines[brick.pos.0 + x].material = line-materials[cell]
 
