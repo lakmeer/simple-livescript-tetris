@@ -37,6 +37,8 @@ export cos = Math.cos
 
 export max = Math.max
 
+export map = (λ, l) --> [ λ x for x in l ]
+
 export wrap = (min, max, n) -->
   if n > max then min
   else if n < min then max
