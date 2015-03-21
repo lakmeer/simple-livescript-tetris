@@ -15,10 +15,13 @@ export class Table extends Base
   (@opts, gs) ->
     super ...
 
-    size = 50
+    size = 100
 
     # Texture
     texture = THREE.ImageUtils.load-texture 'assets/marble.jpg'
+    texture.repeat.set 2, 2
+    texture.wrap-s = THREE.MirroredRepeatWrapping
+    texture.wrap-t = THREE.MirroredRepeatWrapping
     table-mat = new THREE.MeshPhongMaterial map: texture
 
     # Table

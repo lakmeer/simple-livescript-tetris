@@ -1,7 +1,7 @@
 
 # Require
 
-{ id, log, sin, cos, pi, tau, max, rand, floor, map } = require \std
+{ id, log, sin, cos, pi, tau, max, lerp, rand, floor, map } = require \std
 
 THREE = require \three-js-vr-extensions # puts THREE in global scope
 
@@ -17,7 +17,7 @@ THREE = require \three-js-vr-extensions # puts THREE in global scope
 #
 
 export class ThreeJsRenderer
-  (@opts, gs) ->
+  (@opts, {{ width, height }:arena }: gs) ->
     log "New 3D Renderer:", @opts
 
     # Setup three.js WebGL renderer with MozVR extensions
@@ -36,38 +36,66 @@ export class ThreeJsRenderer
       next-brick  : new BrickPreview @opts, gs
 
     # Position various parts correctly
-    @parts.lighting.position <<< y: gs.arena.height / 2, z: 7
-
+    @parts.lighting.position <<< y: height / 2, z: 7
+    @parts.next-brick.position <<< y: height + 5
 
     # Add everything to scene
     for name, part of @parts
       @scene-man.add part
 
-    @scene-man.camera.position.set 0, 10, 20
+    @r = 20
+    @y = 10
 
-    # Deploy helpers
+    # Debug
+    @scene-man.camera.position.set 0, @y, @r
     @show-scene-helpers!
+    document.add-event-listener \mousemove, ({ pageX, pageY }) ~>
+      @position-debug-camera(
+        lerp -1, 1, pageX / window.inner-width
+        lerp -1, 1, pageY / window.inner-height)
+
+
+    # Particle effect
+
+    @pcount = 1800
+    @particles = new THREE.Geometry!
+    @pmat = new THREE.PointCloudMaterial do
+      color: 0xffbb99
+      size: 20
+
+    for p from 0 to @pcount
+      x = rand 250, 750
+      y = rand 250, 750
+      z = rand 250, 750
+      v = new THREE.Vector3 x, y, z
+      @particles.vertices.push v
+
+    @psystem = new THREE.PointCloud @particle, @pmat
+    @psystem.position.y = height/2
+    @scene-man.add @psystem
 
   show-scene-helpers: ->
-    grid = new THREE.GridHelper 30, 1
-    axis = new THREE.AxisHelper 5
+    grid  = new THREE.GridHelper 10, 1
+    axis  = new THREE.AxisHelper 5
     light = new THREE.PointLightHelper @parts.lighting.light, 1
     @scene-man.add grid, light
 
-    @parts.arena-cells.show-bounds @scene-man.root
-    @parts.this-brick.show-bounds @scene-man.root
-    @parts.title.show-bounds @scene-man.root
+    #@parts.arena-cells.show-bounds @scene-man.root
+    #@parts.this-brick.show-bounds @scene-man.root
+    #@parts.title.show-bounds @scene-man.root
 
     #@scene-man.camera.position <<< x: 10, y: 15, z: 10
+    @scene-man.camera.look-at new THREE.Vector3 0, @y, 0
+
+  position-debug-camera: (phase, vphase = 0) ->
+    @scene-man.camera.position.x = @r * sin phase
+    @scene-man.camera.position.y = 10 + @r * -sin vphase
+    @scene-man.camera.position.z = @r * cos phase
     @scene-man.camera.look-at new THREE.Vector3 0, 10, 0
 
-  position-debug-camera: (gs) ->
+  auto-rotate-debug-camera: (gs) ->
     return
-    r = 15
-    phase = pi/10 * sin gs.elapsed-time / 1000
-    @scene-man.camera.position.x = r * sin phase
-    @scene-man.camera.position.z = r * cos phase
-    @scene-man.camera.look-at new THREE.Vector3 0, 10, 0
+    @position-debug-camera pi/10 * sin gs.elapsed-time / 1000
 
   calculate-jolt: ({ rows-to-remove, timers }:gs) ->
     p =
@@ -82,10 +110,14 @@ export class ThreeJsRenderer
     jolt = -1 * p * (1 + zz) * gs.options.hard-drop-jolt-amount
 
   render-line-zap: ({ arena, rows-to-remove, timers }:gs) ->
-    jolt = @calculate-jolt gs
+    jolt   = @calculate-jolt gs
+    zz     = rows-to-remove.length / 20
+    jitter = [ (rand -zz, zz), (rand -zz, zz) ]
+
     @parts.arena-cells.show-zap-effect jolt, gs
-    @scene-man.root.position.y = jolt
-    @position-debug-camera gs
+    @scene-man.root.position.x = jitter.0
+    @scene-man.root.position.y = jitter.1 + jolt
+    #@position-debug-camera gs
 
   render-arena: ({ arena, brick }:gs) ->
     @parts.title.visible = false
@@ -100,26 +132,26 @@ export class ThreeJsRenderer
 
     # Update preview brick
     @parts.next-brick.display-shape brick.next
-    @parts.next-brick.update-wiggle gs
+    @parts.next-brick.update-wiggle gs, gs.elapsed-time
 
     # Jitter and jolt
     @scene-man.root.position.y = @calculate-jolt gs
 
     # Debug camera-motion
-    @position-debug-camera gs
+    @auto-rotate-debug-camera gs
 
   render-start-menu: (gs) ->
     @parts.title.visible = true
-    @position-debug-camera gs
+    @auto-rotate-debug-camera gs
 
   render: (gs) ->
     @scene-man.update!
     switch gs.metagame-state
-    | \game => @render-arena gs
-    | \start-menu  => @render-start-menu gs
-    | \no-game     => log \no-game
+    | \game         => @render-arena gs
+    | \no-game      => log \no-game
+    | \start-menu   => @render-start-menu gs
     | \remove-lines => @render-line-zap gs
-    | otherwise => log "ThreeJsRenderer::render - Unknown metagamestate:", gs.metagame-state
+    | otherwise     => log "ThreeJsRenderer::render - Unknown metagamestate:", gs.metagame-state
     @scene-man.render!
 
   append-to: (host) ->

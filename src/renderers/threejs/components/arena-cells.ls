@@ -46,15 +46,8 @@ export class ArenaCells extends Base
 
   show-zap-effect: (jolt, { arena, rows-to-remove, timers }:gs) ->
     on-off = (floor timers.removal-animation.current-time) % 2
-    zz     = rows-to-remove.length / 20
-    jitter = [ (rand -zz, zz), (rand -zz, zz) ]
-
     for row-ix in rows-to-remove
       @toggle-row-of-cells row-ix, on-off
-
-    @offset.position.x = jitter.0
-    @offset.position.y = jitter.1
-
 
   update-cells: (cells) ->
     for row, y in cells

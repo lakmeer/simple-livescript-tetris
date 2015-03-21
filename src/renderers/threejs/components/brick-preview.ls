@@ -25,13 +25,13 @@ export class BrickPreview extends Brick
   (@opts, gs) ->
     super ...
 
-  display-brick: (brick) ->
+  display-shape: (brick) ->
     super ...
-    [ x, y ] = pretty-offset[ brick.next.type ]
+    [ x, y ] = pretty-offset[ brick.type ]
     @registration.position.x = -1.5 + x
     @registration.position.y = -1.5 + y
 
   update-wiggle: (brick, elapsed-time) ->
-    @registration.rotation.y = 0.2 * sin elapsed-time / 500
+    @root.rotation.y = 0.2 * sin elapsed-time / 500
 
 
