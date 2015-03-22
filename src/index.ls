@@ -23,6 +23,7 @@
 game-opts =
   tile-width  : 10
   tile-height : 18
+  time-factor : 1
 
 render-opts =
   z: 20
@@ -59,11 +60,12 @@ InputHandler.on 192, ->
 #
 
 frame-driver = new FrameDriver (Δt, time, frame) ->
-  game-state.elapsed-time   = time
+  game-state.Δt             = Δt / game-opts.time-factor
+  game-state.elapsed-time   = time / game-opts.time-factor
   game-state.elapsed-frames = frame
   game-state.input-state    = input-handler.changes-since-last-frame!
 
-  Timer.update-all Δt / 1
+  Timer.update-all Δt / game-opts.time-factor
 
   game-state := tetris-game.run-frame game-state, Δt
 

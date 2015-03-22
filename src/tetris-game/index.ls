@@ -82,6 +82,7 @@ export class TetrisGame
           log "DEBUG: Destroying rows:", amt
           log gs.rows-to-remove = for i from gs.arena.height - amt to gs.arena.height - 1 => i
           gs.metagame-state = \remove-lines
+          gs.flags.rows-removed-this-frame = yes
           gs.timers.removal-animation.run-for amt * 100
         | \debug-5 =>  # Sets up tetris scenario
           pos = gs.brick.current.pos
@@ -96,6 +97,9 @@ export class TetrisGame
         | \down =>
           gs.force-down-mode = off
 
+  clear-one-frame-flags: (gs) ->
+    gs.flags.rows-removed-this-frame = no
+
   advance-game: ({ brick, arena, input-state }:gs) ->
 
     # Reset one-frame-only state flags
@@ -109,6 +113,7 @@ export class TetrisGame
 
       # Wait for animation
       gs.metagame-state = \remove-lines
+      gs.flags.rows-removed-this-frame = true
       gs.timers.removal-animation.run-for complete-rows.length * 100
       gs.rows-to-remove = complete-rows
 
@@ -143,7 +148,6 @@ export class TetrisGame
 
     @handle-key-input gs
 
-
       #if Core.can-drop brick.current, arena
       #  brick.current.pos.1 += 1
       #else
@@ -151,8 +155,6 @@ export class TetrisGame
       #  gs.force-down-mode = off
       #  gs.timers.force-drop-wait-timer.reset!
       #  gs.timers.drop-timer.time-to-expiry = gs.timers.force-drop-wait-timer.target-time
-
-
 
   show-start-screen: ({ input-state, start-menu-state }:gs) ->
 
@@ -174,12 +176,16 @@ export class TetrisGame
         | \down =>
           gs.force-down-mode = off
 
+  reveal-start-screen: ({ timers }:gs) ->
+    timers.title-reveal-timer.reset!
+    gs.metagame-state = \start-menu
 
   run-frame: ({ metagame-state }:game-state, Δt) ->
+    @clear-one-frame-flags game-state
     switch metagame-state
     | \failure     => @show-fail-screen ...
     | \game        => @advance-game ...
-    | \no-game     => game-state.metagame-state = \start-menu
+    | \no-game     => @reveal-start-screen ...
     | \start-menu  => @show-start-screen ...
     | \remove-lines => @advance-removal-animation ...
     | otherwise => console.debug 'Unknown metagame-state:', metagame-state

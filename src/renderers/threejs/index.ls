@@ -1,11 +1,15 @@
 
 # Require
 
-{ id, log, sin, pi, tau, max, rand, floor } = require \std
-
-{ Palette } = require \./palette
+{ id, log, sin, cos, pi, tau, max, lerp, rand, floor, map } = require \std
 
 THREE = require \three-js-vr-extensions # puts THREE in global scope
+
+{ Palette } = require \./palette
+{ SceneManager } = require \./scene-manager
+{ Title, Table, Frame, Brick, Lighting } = require \./components
+{ GuideLines, ArenaCells, BrickPreview } = require \./components
+{ ParticleEffect } = require \./components
 
 
 #
@@ -15,244 +19,161 @@ THREE = require \three-js-vr-extensions # puts THREE in global scope
 #
 
 export class ThreeJsRenderer
-  (@opts, gs) ->
+  (@opts, {{ width, height }:arena }: gs) ->
     log "New 3D Renderer:", @opts
 
-    # Setup three.js WebGL renderer
-    @renderer = new THREE.WebGLRenderer antialias: true
+    # Setup three.js WebGL renderer with MozVR extensions
+    @scene-man = new SceneManager @opts
+    @output-canvas = @scene-man.dom-element
 
-    # Create a three.js scene
-    aspect   = window.inner-width / window.inner-height
-    @scene    = new THREE.Scene!
-    @camera   = new THREE.PerspectiveCamera 75, aspect, 1, 10000
-    @controls = new THREE.VRControls @camera
+    # Build scene
+    @parts =
+      title       : new Title          @opts, gs
+      table       : new Table          @opts, gs
+      frame       : new Frame          @opts, gs
+      lighting    : new Lighting       @opts, gs
+      guide-lines : new GuideLines     @opts, gs
+      arena-cells : new ArenaCells     @opts, gs
+      this-brick  : new Brick          @opts, gs
+      next-brick  : new BrickPreview   @opts, gs
+      particles   : new ParticleEffect @opts, gs
 
-    # Apply VR stereo rendering to renderer
-    @effect = new THREE.VREffect @renderer
-    @effect.setSize window.innerWidth, window.innerHeight
+    # Position various parts correctly
+    @parts.lighting.position <<< y: height / 2, z: 7
+    @parts.next-brick.position <<< y: height + 5
+    @parts.table.table.receive-shadow = yes
+    @parts.this-brick.brick.cast-shadow = yes
 
-    # Listen for double click event to enter full-screen VR mode
-    go-fullscreen = ~>
-      log \go-fullscreen?
-      @effect.set-full-screen yes
+    # Add everything to scene
+    for name, part of @parts
+      @scene-man.add part
 
-    # Zero positional sensor on 'V'
-    on-key = ({ key-code }:event) ~>
-      event.prevent-default!
-      if key-code is 86 then @controls.zero-sensor!
+    @r = 20
+    @y = 10
 
-    # Handle window resizes
-    on-resize = ~>
-      @camera.aspect = window.innerWidth / window.innerHeight
-      @camera.updateProjectionMatrix!
-      @effect.setSize window.innerWidth, window.innerHeight
+    # Debug
+    @scene-man.camera.position.set 0, @y, @r
+    @show-scene-helpers!
+    document.add-event-listener \mousemove, ({ pageX, pageY }) ~>
+      @position-debug-camera(
+        lerp -1, 1, pageX / window.inner-width
+        lerp -1, 1, pageY / window.inner-height)
 
-    # Bind listeners
-    window.addEventListener \keydown, on-key, true
-    window.addEventListener \resize, on-resize, false
-    document.body.addEventListener \dblclick, go-fullscreen
 
-    # Append the canvas element created by the renderer to document body
-    @output-canvas = @renderer.dom-element
+  show-scene-helpers: ->
+    grid  = new THREE.GridHelper 10, 1
+    axis  = new THREE.AxisHelper 5
+    light = new THREE.PointLightHelper @parts.lighting.light, 1
+    spot  = new THREE.SpotLightHelper @parts.lighting.spotlight, 1
+    #@scene-man.add grid, light
 
-    # Pre-create geometry instead of creatinga nd destroying every frame
-    @geom = {}
-    @create-brick-cells!
-    @create-arena-cells gs.arena
-    @create-preview gs.arena.width, gs.arena.height
+    #@parts.arena-cells.show-bounds @scene-man.root
+    #@parts.this-brick.show-bounds @scene-man.root
+    #@parts.title.show-bounds @scene-man.root
 
-    # Add brick to arena's coordinate system
-    @geom.arena.add @geom.brick
+    #@scene-man.camera.position <<< x: 10, y: 15, z: 10
+    @scene-man.camera.look-at new THREE.Vector3 0, @y, 0
 
-    # Create selection of materials so we can repurpose our bricks
-    @mats = @create-materials-gallery!
-    @zap-material = new THREE.MeshLambertMaterial color: \white
+  position-debug-camera: (phase, vphase = 0) ->
+    @scene-man.camera.position.x = @r * sin phase
+    @scene-man.camera.position.y = 10 + @r * -sin vphase
+    @scene-man.camera.position.z = @r * cos phase
+    @scene-man.camera.look-at new THREE.Vector3 0, 10, 0
 
-    # Add a light
-    @light = new THREE.PointLight 0xffffff, 1, 0
-    @light.position.set 0, 0, 0
-    @scene.add @light
-
-  create-demo-cube: ->
-    geometry = new THREE.BoxGeometry 10, 10, 10
-    material = new THREE.MeshNormalMaterial!
-
-    cube = new THREE.Mesh geometry, material
-    cube.position <<< z: -20
-
-    @scene.add cube
-
-    animate = ~>
-      cube.rotation.y += 0.01
-      @controls.update
-      @effect.render @scene, @camera
-      raf animate
-    animate!
-
-  create-materials-gallery: ->
-    for color in Palette.tile-colors
-      new THREE.MeshLambertMaterial color: color
-
-  create-brick-cells: ->
-    geometry = new THREE.BoxGeometry 0.9, 0.9, 0.9
-    material = new THREE.MeshNormalMaterial!
-
-    @geom.brick = new THREE.Object3D
-    @scene.add @geom.brick
-
-    @geom.brick-cells =
-      for i from 0 to 3
-        cube = new THREE.Mesh geometry, material
-        @geom.brick.add cube
-        cube
-
-  create-arena-cells: ({ cells, width, height }) ->
-    geometry = new THREE.BoxGeometry 0.9, 0.9, 0.9
-    material = new THREE.MeshNormalMaterial!
-
-    @geom.arena-root   = new THREE.Object3D
-    @geom.arena-offset = new THREE.Object3D
-    @geom.arena        = new THREE.Object3D
-    @geom.arena-root.add @geom.arena-offset
-    @geom.arena-offset.add @geom.arena
-    @scene.add @geom.arena-root
-
-    # Flip and position correctly
-    @geom.arena-root.position <<< z: -20
-
-    # Center components within 3d region
-    @geom.arena-offset.position <<< x: width/-2, y: height/2
-    @geom.arena-offset.rotation.x = pi
-
-    line-mat  = new THREE.LineBasicMaterial color: 0x555555
-    line-mesh = new THREE.Geometry!
-    line-mesh.vertices.push new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, height, 0)
-
-    for i from 0 to 9
-      line = new THREE.Line line-mesh, line-mat
-      line.position <<< x: i, y: -0.5
-      @geom.arena.add line
-
-    backing-geom = new THREE.BoxGeometry width, height, 1.1
-    backing-mat  = new THREE.MeshBasicMaterial do
-      color: \white
-      wireframe: on
-      side: THREE.BackSide
-
-    backing = new THREE.Mesh backing-geom, backing-mat
-    backing.position <<< x: width/2 - 0.5, y: height/2 - 0.5, z: 0
-    #@geom.arena-root.add backing
-
-    @geom.arena-cells =
-      for row, y in cells
-        for cell, x in row
-          cube = new THREE.Mesh geometry, material
-          cube.position <<< { x, y }
-          @geom.arena.add cube
-          cube
-
-  create-preview: (width, height) ->
-    geometry = new THREE.BoxGeometry 0.9, 0.9, 0.9
-    material = new THREE.MeshNormalMaterial!
-    bounds-geom = new THREE.BoxGeometry 4.1, 4.1, 1.1
-    bounds-mat  = new THREE.MeshBasicMaterial do
-      color: \white
-      wireframe: on
-
-    @geom.next        = new THREE.Object3D
-    @geom.next-offset = new THREE.Object3D
-
-    @geom.next.add @geom.next-offset
-    @geom.next.position <<< x: -0.5, y: height/2 + 3.5, z: -20
-    @geom.next.rotation.x = pi
-
-    next-box = new THREE.Mesh bounds-geom, bounds-mat
-    #@geom.next.add next-box
-
-    @geom.next-cells =
-      for i from 0 to 3
-        cube = new THREE.Mesh geometry, material
-        @geom.next-offset.add cube
-        cube
-
-    @scene.add @geom.next
-
-  map-brick-shape-to-boxes: (brick-cells, shape) ->
-    brick-cell-index = 0
-    for row, y in shape
-      for cell, x in row
-        if cell
-          brick-cell = brick-cells[brick-cell-index]
-          brick-cell.position <<< { x, y }
-          brick-cell.material = @mats[cell]
-          brick-cell-index += 1
-
-  toggle-row-of-cells: (arena, row-ix, state) ->
-    for cell, x in arena.cells[row-ix]
-      box = @geom.arena-cells[row-ix][x]
-      box.visible = state
-      if state
-        box.material = @zap-material
-
-  pretty-offset: (type) ->
-    switch type
-    | \square => [0 0]
-    | \zig    => [0.5 0]
-    | \zag    => [0.5 0]
-    | \left   => [0.5 0]
-    | \right  => [0.5 0]
-    | \tee    => [0.5 0]
-    | \tetris => [0 -0.5]
+  auto-rotate-debug-camera: (gs) ->
+    return
+    @position-debug-camera pi/10 * sin gs.elapsed-time / 1000
 
   calculate-jolt: ({ rows-to-remove, timers }:gs) ->
-    zz   = rows-to-remove.length
-    p    = max (1 - timers.hard-drop-effect.progress), (1 - timers.removal-animation.progress)
-    jolt = p * (1 - zz) * gs.options.hard-drop-jolt-amount / 1
+    p =
+      if timers.removal-animation.active
+        (1 - timers.removal-animation.progress)
+      else if timers.hard-drop-effect.progress
+        max (1 - timers.hard-drop-effect.progress)
+      else
+        0
+
+    zz = rows-to-remove.length
+    jolt = -1 * p * (1 + zz) * gs.options.hard-drop-jolt-amount
 
   render-line-zap: ({ arena, rows-to-remove, timers }:gs) ->
-    on-off = (floor timers.removal-animation.current-time) % 2
+    jolt   = @calculate-jolt gs
     zz     = rows-to-remove.length / 20
     jitter = [ (rand -zz, zz), (rand -zz, zz) ]
 
-    for row-ix in rows-to-remove
-      @toggle-row-of-cells arena, row-ix, on-off
+    @parts.arena-cells.show-zap-effect jolt, gs
+    @scene-man.root.position.x = jitter.0
+    @scene-man.root.position.y = jitter.1 + jolt
+    @auto-rotate-debug-camera gs
 
-    @geom.arena.position.x = jitter.0
-    @geom.arena.position.y = jitter.1 + @calculate-jolt gs
-    @effect.render @scene, @camera
+    # if rows were only just begun to be removed this frame, spawn particles,
+    # but don't spawn them other times (just update them)
+    if gs.flags.rows-removed-this-frame
+      @parts.particles.reset-particles!
+      for row-ix, i in rows-to-remove
+        p = switch rows-to-remove.length
+        | 1 => 100
+        | 2 => 300
+        | 3 => 600
+        | 4 => 1200
+        @parts.particles.revive p - i * p/rows-to-remove.length, arena.height - row-ix - 0.5
 
-  render-arena: ({{ cells, width, height }:arena, brick }:gs) ->
+    @parts.particles.update timers.removal-animation.progress, gs.Δt
 
-    # Map arena state onto geometry
-    for row, y in cells
-      for cell, x in row
-        @geom.arena-cells[y][x].visible = !!cell
-        @geom.arena-cells[y][x].material = @mats[cell]
 
-    # Use existing geometry to portray falling brick
-    @map-brick-shape-to-boxes @geom.brick-cells, brick.current.shape
-    @geom.brick.position.x = brick.current.pos.0
-    @geom.brick.position.y = brick.current.pos.1
+  render-arena: ({ arena, brick }:gs) ->
+    @parts.title.visible = false
+    @parts.arena-cells.visible = true
+    @parts.this-brick.visible = true
+    @parts.next-brick.visible = true
+    @parts.guide-lines.visible = true
 
-    # Update preview
-    @map-brick-shape-to-boxes @geom.next-cells, brick.next.shape
-    @geom.next.rotation.y = 0.2 * sin gs.elapsed-time / 500
-    pretty-offset = @pretty-offset brick.next.type
-    @geom.next-offset.position.x = -1.5 + pretty-offset.0
-    @geom.next-offset.position.y = -1.5 + pretty-offset.1
+    @parts.arena-cells.update-cells arena.cells
+
+    # Update falling brick
+    @parts.this-brick.display-shape brick.current
+    @parts.this-brick.update-pos brick.current.pos
+
+    # Show lines
+    @parts.guide-lines.show-beam brick.current
+
+    # Update preview brick
+    @parts.next-brick.display-shape brick.next
+    @parts.next-brick.update-wiggle gs, gs.elapsed-time
 
     # Jitter and jolt
-    @geom.arena.position.y = @calculate-jolt gs
-    @effect.render @scene, @camera
+    #@scene-man.root.position.y = @calculate-jolt gs
+
+    # Debug camera-motion
+    @auto-rotate-debug-camera gs
+
+    @parts.particles.update gs.timers.removal-animation.progress, gs.Δt
+
+  render-start-menu: ({{ height }:arena, timers }:gs) ->
+    @parts.title.visible = true
+    @parts.arena-cells.visible = false
+    @parts.guide-lines.visible = false
+    @parts.this-brick.visible = false
+    @parts.next-brick.visible = false
+
+    if timers.title-reveal-timer.active
+      @parts.title.reveal timers.title-reveal-timer.progress
+      @parts.title.dance gs.elapsed-time
+    else
+      @parts.title.dance gs.elapsed-time
+
+    @auto-rotate-debug-camera gs
 
   render: (gs) ->
-    @controls.update!
+    @scene-man.update!
     switch gs.metagame-state
-    | \game => @render-arena gs
-    | \start-menu  => log \start-menu
-    | \no-game     => log \no-game
+    | \game         => @render-arena gs
+    | \no-game      => log \no-game
+    | \start-menu   => @render-start-menu gs
     | \remove-lines => @render-line-zap gs
-    | otherwise => log "ThreeJsRenderer::render - Unknown metagamestate:", gs.metagame-state
+    | otherwise     => log "ThreeJsRenderer::render - Unknown metagamestate:", gs.metagame-state
+    @parts.particles.update 1, gs.Δt
+    @scene-man.render!
 
   append-to: (host) ->
     host.append-child @output-canvas
