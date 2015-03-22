@@ -41,6 +41,7 @@ export class Brick extends Base
       for i from 0 to 3
         cube = new THREE.Mesh @geom.brick-box, @mats.normal
         @brick.add cube
+        cube.cast-shadow = yes
         cube
 
   display-shape: ({ shape }, ix = 0) ->

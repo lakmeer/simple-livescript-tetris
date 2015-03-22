@@ -21,7 +21,7 @@ export class ArenaCells extends Base
     { width, height } = gs.arena
 
     @geom.box = new THREE.BoxGeometry 0.9, 0.9, 0.9
-    @mats.zap = new THREE.MeshLambertMaterial color: \white
+    @mats.zap = new THREE.MeshLambertMaterial color: 0xffffff, emissive: 0x999999
 
     @offset = new THREE.Object3D
     @registration.add @offset
@@ -45,7 +45,7 @@ export class ArenaCells extends Base
       box.visible = state
 
   show-zap-effect: (jolt, { arena, rows-to-remove, timers }:gs) ->
-    on-off = (floor timers.removal-animation.current-time) % 2
+    on-off = !!((floor timers.removal-animation.current-time) % 2)
     for row-ix in rows-to-remove
       @toggle-row-of-cells row-ix, on-off
 

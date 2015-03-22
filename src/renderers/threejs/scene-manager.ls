@@ -33,6 +33,18 @@ export class SceneManager
     window.addEventListener \resize, @resize, false
     document.body.addEventListener \dblclick, @go-fullscreen
 
+  enable-shadow-casting: ->
+    @renderer.shadow-map-enabled = yes
+    @renderer.shadow-map-soft = yes
+    @renderer.shadowCameraNear = 3
+    @renderer.shadowCameraFar = 1000
+    @renderer.shadowCameraFov = 50
+
+    @renderer.shadowMapBias = 0.0039
+    @renderer.shadowMapDarkness = 0.5
+    @renderer.shadowMapWidth = 1024
+    @renderer.shadowMapHeight = 1024
+
   go-fullscreen: ~>
     @effect.set-full-screen yes
 

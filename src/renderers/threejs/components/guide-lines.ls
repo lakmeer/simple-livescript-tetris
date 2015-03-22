@@ -1,7 +1,7 @@
 
 # Require
 
-{ id, log } = require \std
+{ id, log, floor } = require \std
 
 { Base } = require \./base
 
@@ -51,4 +51,11 @@ export class GuideLines extends Base
       for cell, x in row
         if cell
           @lines[brick.pos.0 + x].material = line-materials[cell]
+
+  dance: (time) ->
+    for line, i in @lines
+      line.material = line-materials[(i + floor time / 100) % 8]
+
+
+
 

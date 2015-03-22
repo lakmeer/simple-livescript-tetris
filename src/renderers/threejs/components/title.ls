@@ -1,7 +1,7 @@
 
 # Require
 
-{ id, log, pi } = require \std
+{ id, log, pi, sin, cos } = require \std
 
 { Base } = require \./base
 
@@ -26,6 +26,8 @@ export class Title extends Base
 
     { width, height } = gs.arena
 
+    @height = height
+
     @geom.box   = new THREE.BoxGeometry 0.45, 0.45, 0.45
     @geom.strut = new THREE.BoxGeometry width, height, 0.9
 
@@ -35,7 +37,7 @@ export class Title extends Base
     #@registration.add @strut
 
     @title = new THREE.Object3D
-    @title.position <<< { x: -3.75, y: -5 }
+    @title.position <<< { x: -3.75, y: height / -2 - 0.5 }
     @registration.add @title
 
     @registration.position <<< { x: 0, y: height - 0.5 }
@@ -47,4 +49,13 @@ export class Title extends Base
           box.position <<< { x: x/2, y: title.length/2 - y/2 }
           @title.add box
 
-    reveal: ->
+  reveal: (progress) ->
+    # TODO: Ease this
+    @registration.position.y = @height + @height * (1 - progress)
+    @registration.rotation.y = (1 - progress) * 10
+
+  dance: (time) ->
+    #@registration.rotation.y = -pi/2 + time / 1000
+    @title.opacity = 0.5 + 0.5 * sin + time / 1000
+
+

@@ -27,6 +27,8 @@ export class Table extends Base
     # Table
     @geom.table = new THREE.BoxGeometry size, 1, size
     @table = new THREE.Mesh @geom.table, table-mat
+    @table.receive-shadow = yes
+    @table.cast-shadow = yes
 
     # Positioning
     @registration.add @table
