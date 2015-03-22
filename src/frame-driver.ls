@@ -20,16 +20,15 @@ export class FrameDriver
       running: no
 
   frame: ~>
+    if @state.running then raf @frame
+
     now = Date.now! - @state.zero
     Δt = now - @state.time
 
-    @state.time = now
+    @state.time  = now
     @state.frame = @state.frame + 1
-
+    @state.Δt    = Δt
     @on-frame Δt, @state.time, @state.frame
-
-    if @state.running
-      raf @frame
 
   start: ->
     if @state.running is yes then return
