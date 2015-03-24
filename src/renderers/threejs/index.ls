@@ -122,12 +122,15 @@ export class ThreeJsRenderer
 
 
   render-arena: ({ arena, brick }:gs) ->
+
+    # Switch appropriate scene parts on and off
     @parts.title.visible = false
     @parts.arena-cells.visible = true
     @parts.this-brick.visible = true
     @parts.next-brick.visible = true
     @parts.guide-lines.visible = true
 
+    # Render current arena state to blocks
     @parts.arena-cells.update-cells arena.cells
 
     # Update falling brick
@@ -142,12 +145,15 @@ export class ThreeJsRenderer
     @parts.next-brick.update-wiggle gs, gs.elapsed-time
 
     # Jitter and jolt
-    #@scene-man.root.position.y = @calculate-jolt gs
+    @scene-man.root.position.y = @calculate-jolt gs
 
     # Debug camera-motion
     @auto-rotate-debug-camera gs
 
+    # Update any particles that happen to be alive
     @parts.particles.update gs.timers.removal-animation.progress, gs.Δt
+
+  render-pause-menu: ({{ height }:arena, timers }:gs) ->
 
   render-start-menu: ({{ height }:arena, timers }:gs) ->
     @parts.title.visible = true
@@ -157,8 +163,8 @@ export class ThreeJsRenderer
     @parts.next-brick.visible = false
 
     if timers.title-reveal-timer.active
-      @parts.title.reveal timers.title-reveal-timer.progress
       @parts.title.dance gs.elapsed-time
+      @parts.title.reveal timers.title-reveal-timer.progress
     else
       @parts.title.dance gs.elapsed-time
 
@@ -170,6 +176,7 @@ export class ThreeJsRenderer
     | \game         => @render-arena gs
     | \no-game      => log \no-game
     | \start-menu   => @render-start-menu gs
+    | \pause-menu   => @render-pause-menu gs
     | \remove-lines => @render-line-zap gs
     | otherwise     => log "ThreeJsRenderer::render - Unknown metagamestate:", gs.metagame-state
     @parts.particles.update 1, gs.Δt

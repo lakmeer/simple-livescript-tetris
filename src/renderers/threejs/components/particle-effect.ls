@@ -74,7 +74,16 @@ export class ParticleEffect extends Base
       @colors[ i + 1 ] = 1
       @colors[ i + 2 ] = 1
 
+      @lifespans[i] = 0  # Start dead until I sasy otherwise
+
   accelerate-particle: (i, t) ->
+
+      # Die
+      if @lifespans[i/3] <= 0
+        @positions[i + 1] = -1000
+        return
+
+      # If not dead, fall
       t = t/(1000/speed)
       acc = -0.98
 
@@ -100,10 +109,6 @@ export class ParticleEffect extends Base
         vx1 *= 0.7
         vy1 *= -0.6
         vz1 *= 0.7
-
-      # Die
-      if @lifespans[i/3] < 0
-        py1 = -1000
 
       @positions[i + 0] =  px1
       @positions[i + 1] =  py1
