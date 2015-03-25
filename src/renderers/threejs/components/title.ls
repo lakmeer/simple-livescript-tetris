@@ -1,7 +1,8 @@
 
 # Require
 
-{ id, log, pi, sin, cos } = require \std
+{ id, log, pi, sin, cos, min, max } = require \std
+{ Ease } = require \std
 
 { Base } = require \./base
 
@@ -50,9 +51,10 @@ export class Title extends Base
           @title.add box
 
   reveal: (progress) ->
-    # TODO: Ease this
-    @registration.position.y = @height + @height * (1 - progress)
-    @registration.rotation.y = (1 - progress) * 10
+    p = (min 1, progress)
+    @registration.position.y = Ease.quint-out p, @height * 2, @height
+    @registration.rotation.y = Ease.exp-out p, 100, 0
+    # log @registration.position.y
 
   dance: (time) ->
     #@registration.rotation.y = -pi/2 + time / 1000

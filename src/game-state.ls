@@ -54,7 +54,7 @@ export class GameState
       removal-animation-time: 500
       hard-drop-effect-time: 100
       key-repeat-time: 100
-      title-reveal-time: 400
+      title-reveal-time: 4000
 
     arena:
       cells: [[]]

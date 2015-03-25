@@ -1,7 +1,7 @@
 
 # Require
 
-{ id, log } = require \std
+{ id, log, unlines } = require \std
 
 
 # Templates
@@ -35,6 +35,14 @@ template =
      drop - #{if @force-down-mode then \soft else \auto}
   """
 
+  start-menu: -> """
+    START MENU
+    #{ unlines ( for item, ix in @menu-data => template.menu-item.call item, ix, @current-index ) }
+  """
+
+  menu-item: (index, current-index) -> """
+    #{ if index is current-index then ">" else " " } #{ @text }
+  """
 
 #
 # Debug Output
@@ -48,11 +56,11 @@ export class DebugOutput
   ->
     @dbo = document.create-element \pre
     document.body.append-child @dbo
+    @dbo.style.position = \absolute
 
   render: (state) ->
     switch state.metagame-state
-    | \game         => @dbo.innerText = template.normal.apply state
-    | \start-menu   => @dbo.innerText = "Start menu"
-    | \remove-lines => @dbo.innerText = template.normal.apply state
-    | otherwise     => @dbo.innerText = "Unknown metagame state: " + state.metagame-state
-
+    | \game         => @dbo.innerHTML = template.normal.apply state
+    | \start-menu   => @dbo.innerHTML = template.start-menu.apply state.start-menu-state
+    | \remove-lines => @dbo.innerHTML = template.normal.apply state
+    | otherwise     => @dbo.innerHTML = "Unknown metagame state: " + state.metagame-state
