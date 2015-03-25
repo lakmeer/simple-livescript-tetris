@@ -21,9 +21,10 @@ export tile-colors =
 
 export mesh-materials = for color in tile-colors
   new THREE.MeshPhongMaterial do
+    metal: true
     color: color
     specular: color
-    shininess: 40
+    shininess: 100
 
 export line-materials = for color in tile-colors
   new THREE.LineBasicMaterial do

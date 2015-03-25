@@ -26,8 +26,8 @@ export class Title extends Base
       * [ 1 0 1 4 4 6 6 6 ]
       * [ 1 0 1 4 0 4 6 0 ]
       * [ 1 0 1 4 4 0 6 0 ]
-      * [ 1 0 1 4 0 4 6 0 ]
-      * [ 0 1 0 4 0 4 6 0 ]
+      * [ 0 1 1 4 0 4 6 0 ]
+      * [ 0 0 1 4 0 4 6 0 ]
 
 
   (@opts, gs) ->
@@ -69,6 +69,7 @@ export class Title extends Base
     p = (min 1, progress)
     @registration.position.y = Ease.quint-out p, @height * 2, @height
     @registration.rotation.y = Ease.exp-out p, 30, 0
+    @registration.rotation.x = Ease.exp-out p, -pi/10, 0
     # log @registration.position.y
 
   dance: (time) ->

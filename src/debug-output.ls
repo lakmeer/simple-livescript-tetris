@@ -35,13 +35,32 @@ template =
      drop - #{if @force-down-mode then \soft else \auto}
   """
 
+  menu-items: -> """
+    #{ unlines ( for item, ix in @menu-data => template.menu-item.call item, ix, @current-index ) }
+  """
+
   start-menu: -> """
     START MENU
-    #{ unlines ( for item, ix in @menu-data => template.menu-item.call item, ix, @current-index ) }
+    #{ template.menu-items.apply this }
   """
 
   menu-item: (index, current-index) -> """
     #{ if index is current-index then ">" else " " } #{ @text }
+  """
+
+  failure: -> """
+       GAME OVER
+
+         Score
+
+      Single - #{@score.singles}
+      Double - #{@score.doubles}
+      Triple - #{@score.triples}
+      Tetris - #{@score.tetris}
+
+    Total Lines: #{@score.lines}
+
+    #{ template.menu-items.apply this.fail-menu-state }
   """
 
 #
@@ -61,6 +80,7 @@ export class DebugOutput
   render: (state) ->
     switch state.metagame-state
     | \game         => @dbo.innerHTML = template.normal.apply state
+    | \failure      => @dbo.innerHTML = template.failure.apply state
     | \start-menu   => @dbo.innerHTML = template.start-menu.apply state.start-menu-state
     | \remove-lines => @dbo.innerHTML = template.normal.apply state
     | otherwise     => @dbo.innerHTML = "Unknown metagame state: " + state.metagame-state

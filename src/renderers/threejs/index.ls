@@ -49,15 +49,18 @@ export class ThreeJsRenderer
       @scene-man.add part
 
     @r = 20
-    @y = 10
+    @y = 8
 
     # Debug
     @scene-man.camera.position.set 0, @y, @r
+    @scene-man.camera.look-at new THREE.Vector3 0, 0, 0
     @show-scene-helpers!
-    document.add-event-listener \mousemove, ({ pageX, pageY }) ~>
-      @position-debug-camera(
-        lerp -1, 1, pageX / window.inner-width
-        lerp -1, 1, pageY / window.inner-height)
+    @position-debug-camera 0, 0.3
+
+    #document.add-event-listener \mousemove, ({ pageX, pageY }) ~>
+    #  @position-debug-camera(
+    #    lerp -1, 1, pageX / window.inner-width
+    #    lerp -1, 1, pageY / window.inner-height)
 
 
   show-scene-helpers: ->
@@ -76,7 +79,7 @@ export class ThreeJsRenderer
 
   position-debug-camera: (phase, vphase = 0) ->
     @scene-man.camera.position.x = @r * sin phase
-    @scene-man.camera.position.y = 10 + @r * -sin vphase
+    @scene-man.camera.position.y = @y + @r * -sin vphase
     @scene-man.camera.position.z = @r * cos phase
     @scene-man.camera.look-at new THREE.Vector3 0, 10, 0
 
@@ -170,6 +173,9 @@ export class ThreeJsRenderer
 
     @auto-rotate-debug-camera gs
 
+  render-fail-screen: ({{ height }:arena, timers }:gs) ->
+
+
   render: (gs) ->
     @scene-man.update!
     switch gs.metagame-state
@@ -178,6 +184,7 @@ export class ThreeJsRenderer
     | \start-menu   => @render-start-menu gs
     | \pause-menu   => @render-pause-menu gs
     | \remove-lines => @render-line-zap gs
+    | \failure      => @render-fail-screen gs
     | otherwise     => log "ThreeJsRenderer::render - Unknown metagamestate:", gs.metagame-state
     @parts.particles.update 1, gs.Δt
     @scene-man.render!

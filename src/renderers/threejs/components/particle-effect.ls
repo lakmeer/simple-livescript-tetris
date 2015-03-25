@@ -24,15 +24,14 @@ export class ParticleEffect extends Base
 
     @last-p = 10
 
-
-    # Buffer geom
-
     particles  = 1200
     geometry   = new THREE.BufferGeometry!
+
     @positions  = new Float32Array particles * 3
     @velocities = new Float32Array particles * 3
     @lifespans  = new Float32Array particles * 3
     @colors     = new Float32Array particles * 3
+
     color      = new THREE.Color!
 
     @pos-attr = new THREE.BufferAttribute @positions, 3
@@ -66,9 +65,9 @@ export class ParticleEffect extends Base
       @positions[ i + 1 ] = 0
       @positions[ i + 2 ] = z
 
-      @velocities[ i + 0 ] = x / 9
+      @velocities[ i + 0 ] = x / 9 * 10
       @velocities[ i + 1 ] = Math.random! * 2
-      @velocities[ i + 2 ] = z
+      @velocities[ i + 2 ] = z * 10
 
       @colors[ i + 0 ] = 1
       @colors[ i + 1 ] = 1

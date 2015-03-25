@@ -6,6 +6,7 @@
 
 Core      = require \./game-core
 StartMenu = require \./start-menu
+FailMenu  = require \./fail-menu
 
 
 # Pure Helpers
@@ -23,12 +24,8 @@ export class TetrisGame
 
     # Each module should prime it's own chunk of the state
     StartMenu.prime-game-state game-state
+    FailMenu.prime-game-state game-state
     # ... and so on, when I get around to it
-
-  show-fail-screen: (game-state, Δt) ->
-    console.debug \FAILED
-    @reveal-start-screen game-state
-    StartMenu.prime-game-state game-state
 
   begin-new-game: (game-state) ->
     let this = game-state
@@ -83,7 +80,7 @@ export class TetrisGame
           log gs.rows-to-remove = for i from gs.arena.height - amt to gs.arena.height - 1 => i
           gs.metagame-state = \remove-lines
           gs.flags.rows-removed-this-frame = yes
-          gs.timers.removal-animation.run-for amt * 100
+          gs.timers.removal-animation.run-for * 10
         | \debug-5 =>  # Sets up tetris scenario
           pos = gs.brick.current.pos
           gs.brick.current = Core.new-brick 6
@@ -114,7 +111,7 @@ export class TetrisGame
       # Wait for animation
       gs.metagame-state = \remove-lines
       gs.flags.rows-removed-this-frame = true
-      gs.timers.removal-animation.run-for complete-rows.length * 100
+      gs.timers.removal-animation.run-for complete-rows.length * 10
       gs.rows-to-remove = complete-rows
 
       # Add any dropped lines to score
@@ -123,7 +120,7 @@ export class TetrisGame
 
     # Check if top has been reached. If so, change game mode to fail
     if Core.top-is-reached arena
-      gs.metagame-state = \failure
+      @reveal-fail-screen gs
       return
 
     # If the game is in force-down mode, drop the brick every frame
@@ -179,6 +176,29 @@ export class TetrisGame
   reveal-start-screen: ({ timers }:gs) ->
     timers.title-reveal-timer.reset!
     gs.metagame-state = \start-menu
+
+  show-fail-screen: ({ input-state, fail-menu-state }:gs, Δt) ->
+    while input-state.length
+      { key, action } = input-state.shift!
+      if action is \down
+        switch key
+        | \up =>
+          FailMenu.select-prev-item fail-menu-state
+        | \down =>
+          FailMenu.select-next-item fail-menu-state
+        | \action-a, \confirm =>
+          log fail-menu-state.current-state.state
+          if fail-menu-state.current-state.state is \restart
+            @begin-new-game gs
+          else if fail-menu-state.current-state.state is \go-back
+            @reveal-start-screen gs
+        | \action-a, \confirm =>
+
+          @begin-new-game gs
+
+  reveal-fail-screen: (gs) ->
+    gs.timers.failure-reveal-timer.reset!
+    gs.metagame-state = \failure
 
   run-frame: ({ metagame-state }:game-state, Δt) ->
     @clear-one-frame-flags game-state
