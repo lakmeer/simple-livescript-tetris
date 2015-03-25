@@ -114,8 +114,6 @@ frame-driver = new FrameDriver (Δt, time, frame) ->
 
 frame-driver.start!
 
-game-state.metagame-state = \failure
-
 
 #
 # Debug:
