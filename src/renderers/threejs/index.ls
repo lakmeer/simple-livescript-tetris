@@ -9,7 +9,7 @@ THREE = require \three-js-vr-extensions # puts THREE in global scope
 { SceneManager } = require \./scene-manager
 { Title, Table, Frame, Brick, Lighting } = require \./components
 { GuideLines, ArenaCells, BrickPreview } = require \./components
-{ ParticleEffect } = require \./components
+{ ParticleEffect, StartMenu } = require \./components
 
 
 #
@@ -37,6 +37,7 @@ export class ThreeJsRenderer
       this-brick  : new Brick          @opts, gs
       next-brick  : new BrickPreview   @opts, gs
       particles   : new ParticleEffect @opts, gs
+      start-menu  : new StartMenu @opts, gs
 
     # Position various parts correctly
     @parts.lighting.position <<< y: height / 2, z: 7
@@ -49,18 +50,18 @@ export class ThreeJsRenderer
       @scene-man.add part
 
     @r = 20
-    @y = 8
+    @y = 10
 
     # Debug
     @scene-man.camera.position.set 0, @y, @r
     @scene-man.camera.look-at new THREE.Vector3 0, 0, 0
     @show-scene-helpers!
-    @position-debug-camera 0, 0.3
+    @position-debug-camera 0, 0
 
-    #document.add-event-listener \mousemove, ({ pageX, pageY }) ~>
-    #  @position-debug-camera(
-    #    lerp -1, 1, pageX / window.inner-width
-    #    lerp -1, 1, pageY / window.inner-height)
+    document.add-event-listener \mousemove, ({ pageX, pageY }) ~>
+      @position-debug-camera(
+        lerp -1, 1, pageX / window.inner-width
+        lerp -1, 1, pageY / window.inner-height)
 
 
   show-scene-helpers: ->
@@ -132,6 +133,7 @@ export class ThreeJsRenderer
     @parts.this-brick.visible = true
     @parts.next-brick.visible = true
     @parts.guide-lines.visible = true
+    @parts.start-menu.visible = false
 
     # Render current arena state to blocks
     @parts.arena-cells.update-cells arena.cells
@@ -164,6 +166,7 @@ export class ThreeJsRenderer
     @parts.guide-lines.visible = false
     @parts.this-brick.visible = false
     @parts.next-brick.visible = false
+    @parts.start-menu.visible = true
 
     if timers.title-reveal-timer.active
       @parts.title.dance gs.elapsed-time
@@ -172,6 +175,9 @@ export class ThreeJsRenderer
       @parts.title.dance gs.elapsed-time
 
     @auto-rotate-debug-camera gs
+
+    @parts.start-menu.update-selection gs.start-menu-state, gs.elapsed-time
+
 
   render-fail-screen: ({{ height }:arena, timers }:gs) ->
 

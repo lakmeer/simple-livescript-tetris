@@ -12,4 +12,5 @@ export { GuideLines }     = require \./guide-lines
 export { ArenaCells }     = require \./arena-cells
 export { BrickPreview }   = require \./brick-preview
 export { ParticleEffect } = require \./particle-effect
+export { StartMenu }      = require \./start-menu
 
