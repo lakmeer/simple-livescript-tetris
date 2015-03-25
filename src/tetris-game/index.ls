@@ -27,7 +27,7 @@ export class TetrisGame
 
   show-fail-screen: (game-state, Δt) ->
     console.debug \FAILED
-    game-state.metagame-state = \start-menu
+    @reveal-start-screen game-state
     StartMenu.prime-game-state game-state
 
   begin-new-game: (game-state) ->
