@@ -49,15 +49,18 @@ export class ThreeJsRenderer
       @scene-man.add part
 
     @r = 20
-    @y = 10
+    @y = 8
 
     # Debug
     @scene-man.camera.position.set 0, @y, @r
+    @scene-man.camera.look-at new THREE.Vector3 0, 0, 0
     @show-scene-helpers!
-    document.add-event-listener \mousemove, ({ pageX, pageY }) ~>
-      @position-debug-camera(
-        lerp -1, 1, pageX / window.inner-width
-        lerp -1, 1, pageY / window.inner-height)
+    @position-debug-camera 0, 0.3
+
+    #document.add-event-listener \mousemove, ({ pageX, pageY }) ~>
+    #  @position-debug-camera(
+    #    lerp -1, 1, pageX / window.inner-width
+    #    lerp -1, 1, pageY / window.inner-height)
 
 
   show-scene-helpers: ->
@@ -76,7 +79,7 @@ export class ThreeJsRenderer
 
   position-debug-camera: (phase, vphase = 0) ->
     @scene-man.camera.position.x = @r * sin phase
-    @scene-man.camera.position.y = 10 + @r * -sin vphase
+    @scene-man.camera.position.y = @y + @r * -sin vphase
     @scene-man.camera.position.z = @r * cos phase
     @scene-man.camera.look-at new THREE.Vector3 0, 10, 0
 
@@ -122,12 +125,15 @@ export class ThreeJsRenderer
 
 
   render-arena: ({ arena, brick }:gs) ->
+
+    # Switch appropriate scene parts on and off
     @parts.title.visible = false
     @parts.arena-cells.visible = true
     @parts.this-brick.visible = true
     @parts.next-brick.visible = true
     @parts.guide-lines.visible = true
 
+    # Render current arena state to blocks
     @parts.arena-cells.update-cells arena.cells
 
     # Update falling brick
@@ -142,12 +148,15 @@ export class ThreeJsRenderer
     @parts.next-brick.update-wiggle gs, gs.elapsed-time
 
     # Jitter and jolt
-    #@scene-man.root.position.y = @calculate-jolt gs
+    @scene-man.root.position.y = @calculate-jolt gs
 
     # Debug camera-motion
     @auto-rotate-debug-camera gs
 
+    # Update any particles that happen to be alive
     @parts.particles.update gs.timers.removal-animation.progress, gs.Δt
+
+  render-pause-menu: ({{ height }:arena, timers }:gs) ->
 
   render-start-menu: ({{ height }:arena, timers }:gs) ->
     @parts.title.visible = true
@@ -157,12 +166,15 @@ export class ThreeJsRenderer
     @parts.next-brick.visible = false
 
     if timers.title-reveal-timer.active
-      @parts.title.reveal timers.title-reveal-timer.progress
       @parts.title.dance gs.elapsed-time
+      @parts.title.reveal timers.title-reveal-timer.progress
     else
       @parts.title.dance gs.elapsed-time
 
     @auto-rotate-debug-camera gs
+
+  render-fail-screen: ({{ height }:arena, timers }:gs) ->
+
 
   render: (gs) ->
     @scene-man.update!
@@ -170,7 +182,9 @@ export class ThreeJsRenderer
     | \game         => @render-arena gs
     | \no-game      => log \no-game
     | \start-menu   => @render-start-menu gs
+    | \pause-menu   => @render-pause-menu gs
     | \remove-lines => @render-line-zap gs
+    | \failure      => @render-fail-screen gs
     | otherwise     => log "ThreeJsRenderer::render - Unknown metagamestate:", gs.metagame-state
     @parts.particles.update 1, gs.Δt
     @scene-man.render!

@@ -24,15 +24,14 @@ export class ParticleEffect extends Base
 
     @last-p = 10
 
-
-    # Buffer geom
-
     particles  = 1200
     geometry   = new THREE.BufferGeometry!
+
     @positions  = new Float32Array particles * 3
     @velocities = new Float32Array particles * 3
     @lifespans  = new Float32Array particles * 3
     @colors     = new Float32Array particles * 3
+
     color      = new THREE.Color!
 
     @pos-attr = new THREE.BufferAttribute @positions, 3
@@ -66,15 +65,24 @@ export class ParticleEffect extends Base
       @positions[ i + 1 ] = 0
       @positions[ i + 2 ] = z
 
-      @velocities[ i + 0 ] = x / 9
+      @velocities[ i + 0 ] = x / 9 * 10
       @velocities[ i + 1 ] = Math.random! * 2
-      @velocities[ i + 2 ] = z
+      @velocities[ i + 2 ] = z * 10
 
       @colors[ i + 0 ] = 1
       @colors[ i + 1 ] = 1
       @colors[ i + 2 ] = 1
 
+      @lifespans[i] = 0  # Start dead until I sasy otherwise
+
   accelerate-particle: (i, t) ->
+
+      # Die
+      if @lifespans[i/3] <= 0
+        @positions[i + 1] = -1000
+        return
+
+      # If not dead, fall
       t = t/(1000/speed)
       acc = -0.98
 
@@ -100,10 +108,6 @@ export class ParticleEffect extends Base
         vx1 *= 0.7
         vy1 *= -0.6
         vz1 *= 0.7
-
-      # Die
-      if @lifespans[i/3] < 0
-        py1 = -1000
 
       @positions[i + 0] =  px1
       @positions[i + 1] =  py1

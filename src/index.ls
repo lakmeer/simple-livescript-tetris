@@ -16,6 +16,11 @@
 { DebugOutput } = require \./debug-output
 
 
+# Wait for DOM
+
+<- document.add-event-listener \DOMContentLoaded
+
+
 #
 # Setup
 #
@@ -47,12 +52,37 @@ for renderer in renderers
 #
 
 debug-output = new DebugOutput
-#InputHandler.debug-mode!
+
 InputHandler.on 192, ->
   if frame-driver.state.running
     frame-driver.stop!
   else
     frame-driver.start!
+
+#InputHandler.debug-mode!
+
+test-easing = ->
+  { Ease } = require \std
+
+  for el in document.query-selector-all \canvas
+    el.style.display = \none
+
+  for ease-name, ease of Ease
+
+    cnv = document.create-element \canvas
+    cnv.width = 200
+    cnv.height = 200
+    cnv.style.background = \white
+    cnv.style.border-left = "3px solid black"
+    ctx = cnv.get-context \2d
+    document.body.append-child cnv
+
+    ctx.font = "14px monospace"
+    ctx.fill-text ease-name, 2, 16, 200
+
+    for i from 0 to 100
+      p = i / 100
+      ctx.fill-rect 2 * i, 200 - (ease p, 0, 200), 2, 2
 
 
 #
@@ -76,10 +106,23 @@ frame-driver = new FrameDriver (Δt, time, frame) ->
     debug-output.render game-state
 
 
+#
 # Init
+#
+
+<- delay 1000
 
 frame-driver.start!
-#delay 30000, frame-driver~stop
 
-tetris-game.begin-new-game game-state
+game-state.metagame-state = \failure
+
+
+#
+# Debug:
+#
+
+#delay 30000, frame-driver~stop
+#tetris-game.begin-new-game game-state
+#test-easing!
+
 

@@ -43,6 +43,7 @@ export class GameState
       key-repeat-timer: null
       removal-animation: null
       title-reveal-timer: null
+      failure-reveal-timer: null
 
     options:
       tile-width: 10
@@ -54,7 +55,7 @@ export class GameState
       removal-animation-time: 500
       hard-drop-effect-time: 100
       key-repeat-time: 100
-      title-reveal-time: 400
+      title-reveal-time: 4000
 
     arena:
       cells: [[]]
@@ -70,6 +71,7 @@ export class GameState
     @timers.removal-animation     = new Timer @options.removal-animation-time
     @timers.hard-drop-effect      = new Timer @options.hard-drop-effect-time
     @timers.title-reveal-timer    = new Timer @options.title-reveal-time
+    @timers.failure-reveal-timer  = new Timer @options.title-reveal-time
     @arena = @@new-arena @options.tile-width, @options.tile-height
 
   @new-arena = (width, height) ->
