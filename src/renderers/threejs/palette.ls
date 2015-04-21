@@ -19,12 +19,30 @@ export cyan    = [ 0x44ddff 0xaae3ff 0x00aacc 0x006699 ]
 export tile-colors =
   [ neutral.2, red.0, orange.0, yellow.0, green.0, cyan.0, blue.2, magenta.0, \white ]
 
-export mesh-materials = for color in tile-colors
+brushed-metal-bump = THREE.ImageUtils.load-texture \../assets/brushed-metal.bmp.jpg
+brushed-metal-bump.repeat.set 0.01, 0.01
+
+normal-maps = [
+  THREE.ImageUtils.load-texture \../assets/tiles.nrm.jpg
+  THREE.ImageUtils.load-texture \../assets/tiles.nrm.jpg
+  THREE.ImageUtils.load-texture \../assets/grid.nrm.png
+  THREE.ImageUtils.load-texture \../assets/motif.nrm.png
+  THREE.ImageUtils.load-texture \../assets/octagons.nrm.png
+  THREE.ImageUtils.load-texture \../assets/panels.nrm.jpg
+  THREE.ImageUtils.load-texture \../assets/tread.nrm.jpg
+  THREE.ImageUtils.load-texture \../assets/wood.nrm.jpg
+]
+
+normal-adjust = new THREE.Vector2 -0.5, 0.5
+
+export mesh-materials = for color, i in tile-colors
   new THREE.MeshPhongMaterial do
     metal: true
     color: color
     specular: color
     shininess: 100
+    normal-map: normal-maps[i]
+    normal-scale: normal-adjust
 
 export line-materials = for color in tile-colors
   new THREE.LineBasicMaterial do

@@ -2,8 +2,8 @@
 # Require
 
 { id, log, pi, sin, cos, min, max } = require \std
-{ Ease } = require \std
 
+{ Ease } = require \std
 { Base } = require \./base
 
 { mesh-materials } = require \../palette
@@ -28,7 +28,6 @@ export class Title extends Base
       * [ 1 0 1 4 4 0 6 0 ]
       * [ 1 0 1 4 0 4 6 0 ]
       * [ 0 1 0 4 0 4 6 0 ]
-
 
   (@opts, gs) ->
     super ...
@@ -75,5 +74,4 @@ export class Title extends Base
   dance: (time) ->
     #@registration.rotation.y = -pi/2 + time / 1000
     @title.opacity = 0.5 + 0.5 * sin + time / 1000
-
 

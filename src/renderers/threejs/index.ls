@@ -26,6 +26,10 @@ export class ThreeJsRenderer
     @scene-man = new SceneManager @opts
     @output-canvas = @scene-man.dom-element
 
+    # State
+    @state =
+      frames-since-rows-removed: 0
+
     # Build scene
     @parts =
       title       : new Title          @opts, gs
@@ -37,12 +41,12 @@ export class ThreeJsRenderer
       this-brick  : new Brick          @opts, gs
       next-brick  : new BrickPreview   @opts, gs
       particles   : new ParticleEffect @opts, gs
-      start-menu  : new StartMenu @opts, gs
+      start-menu  : new StartMenu      @opts, gs
 
     # Position various parts correctly
-    @parts.lighting.position <<< y: height / 2, z: 7
+    @parts.lighting.position   <<< y: height / 2, z: 7
     @parts.next-brick.position <<< y: height + 5
-    @parts.table.table.receive-shadow = yes
+    @parts.table.table.receive-shadow   = yes
     @parts.this-brick.brick.cast-shadow = yes
 
     # Add everything to scene
@@ -63,12 +67,13 @@ export class ThreeJsRenderer
         lerp -1, 1, pageX / window.inner-width
         lerp -1, 1, pageY / window.inner-height)
 
+    #@parts.lighting.position.z = -20
 
   show-scene-helpers: ->
     grid  = new THREE.GridHelper 10, 1
     axis  = new THREE.AxisHelper 5
     light = new THREE.PointLightHelper @parts.lighting.light, 1
-    spot  = new THREE.SpotLightHelper @parts.lighting.spotlight, 1
+    spot  = new THREE.SpotLightHelper  @parts.lighting.spotlight, 1
     #@scene-man.add grid, light
 
     #@parts.arena-cells.show-bounds @scene-man.root
@@ -85,7 +90,7 @@ export class ThreeJsRenderer
     @scene-man.camera.look-at new THREE.Vector3 0, 10, 0
 
   auto-rotate-debug-camera: (gs) ->
-    return
+    #return
     @position-debug-camera pi/10 * sin gs.elapsed-time / 1000
 
   calculate-jolt: ({ rows-to-remove, timers }:gs) ->
@@ -113,27 +118,22 @@ export class ThreeJsRenderer
     # if rows were only just begun to be removed this frame, spawn particles,
     # but don't spawn them other times (just update them)
     if gs.flags.rows-removed-this-frame
-      @parts.particles.reset-particles!
-      for row-ix, i in rows-to-remove
-        p = switch rows-to-remove.length
-        | 1 => 100
-        | 2 => 300
-        | 3 => 600
-        | 4 => 1200
-        @parts.particles.revive p - i * p/rows-to-remove.length, arena.height - row-ix - 0.5
+      @parts.particles.reset!
+      @parts.particles.prepare rows-to-remove
+      @state.frames-since-rows-removed = 0
 
-    @parts.particles.update timers.removal-animation.progress, gs.Δt
-
+    @parts.particles.update timers.removal-animation.progress,
+      @state.frames-since-rows-removed, gs.Δt
 
   render-arena: ({ arena, brick }:gs) ->
 
     # Switch appropriate scene parts on and off
-    @parts.title.visible = false
+    @parts.title.visible       = false
     @parts.arena-cells.visible = true
-    @parts.this-brick.visible = true
-    @parts.next-brick.visible = true
+    @parts.this-brick.visible  = true
+    @parts.next-brick.visible  = true
     @parts.guide-lines.visible = true
-    @parts.start-menu.visible = false
+    @parts.start-menu.visible  = false
 
     # Render current arena state to blocks
     @parts.arena-cells.update-cells arena.cells
@@ -161,28 +161,25 @@ export class ThreeJsRenderer
   render-pause-menu: ({{ height }:arena, timers }:gs) ->
 
   render-start-menu: ({{ height }:arena, timers }:gs) ->
-    @parts.title.visible = true
+    @parts.title.visible       = true
+    @parts.start-menu.visible  = true
+    @parts.this-brick.visible  = false
+    @parts.next-brick.visible  = false
     @parts.arena-cells.visible = false
     @parts.guide-lines.visible = false
-    @parts.this-brick.visible = false
-    @parts.next-brick.visible = false
-    @parts.start-menu.visible = true
 
     if timers.title-reveal-timer.active
-      @parts.title.dance gs.elapsed-time
       @parts.title.reveal timers.title-reveal-timer.progress
     else
-      @parts.title.dance gs.elapsed-time
+      @parts.title.reveal 1
 
     @auto-rotate-debug-camera gs
-
     @parts.start-menu.update-selection gs.start-menu-state, gs.elapsed-time
-
 
   render-fail-screen: ({{ height }:arena, timers }:gs) ->
 
-
   render: (gs) ->
+    @state.frames-since-rows-removed += 1
     @scene-man.update!
     switch gs.metagame-state
     | \game         => @render-arena gs
@@ -192,7 +189,7 @@ export class ThreeJsRenderer
     | \remove-lines => @render-line-zap gs
     | \failure      => @render-fail-screen gs
     | otherwise     => log "ThreeJsRenderer::render - Unknown metagamestate:", gs.metagame-state
-    @parts.particles.update 1, gs.Δt
+    @parts.particles.update 1, @state.frames-since-rows-removed, gs.Δt
     @scene-man.render!
 
   append-to: (host) ->

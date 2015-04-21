@@ -27,9 +27,6 @@ GH Pages deployment soon
 ## Todo
 
 - Full-clear bonus
-- Alternative renderers. Part of this exercise is to disconnect the renderer
-  and game logic as much as possible - it should be possbile to totally swap
-  out the whole renderer. Maybe a DOM version that supports CSS styling?
 - Localstorage high scores
 - Localstorage game settings like speed or difficulty
 - Braid-style time-travelly undos?
@@ -40,8 +37,11 @@ GH Pages deployment soon
   `TetrisGame.update` function
 - Should each module also get it's own chunk of the gamestate? They should
   probably be allowed to each initialise that chunk as well
-- Three JS renderer with VR support
 - Reinstate key repeat, but just for left and right. Do it as part of the
   game engine, not the input handler. Input handler should probably move away
   from event-based system
+- Implement speed increase
+- Better game menu
+- Make real game over screen
+- Create in-game progress readout
 
