@@ -28,7 +28,7 @@
 game-opts =
   tile-width  : 10
   tile-height : 18
-  time-factor : 1
+  time-factor : 10
 
 render-opts =
   z: 20

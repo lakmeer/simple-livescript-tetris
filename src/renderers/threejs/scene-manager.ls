@@ -23,6 +23,7 @@ export class SceneManager
     @scene    = new THREE.Scene!
     @camera   = new THREE.PerspectiveCamera 75, aspect, 1, 10000
     @controls = new THREE.VRControls @camera
+    @root     = new THREE.Object3D
 
     # Apply VR stereo rendering to renderer
     @effect = new THREE.VREffect @renderer
@@ -46,6 +47,7 @@ export class SceneManager
     @renderer.shadowMapHeight = 1024
 
   go-fullscreen: ~>
+    log 'Starting fullscreen...'
     @effect.set-full-screen yes
 
   zero-sensor: ({ key-code }:event) ~>
@@ -71,5 +73,5 @@ export class SceneManager
 
   add: ->
     for obj in arguments
-      @scene.add if obj.root? then that else obj
+      @root.add if obj.root? then that else obj
 
