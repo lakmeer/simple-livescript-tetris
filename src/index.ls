@@ -28,7 +28,7 @@
 game-opts =
   tile-width  : 10
   tile-height : 18
-  time-factor : 10
+  time-factor : 1
 
 render-opts =
   z: 20
@@ -68,7 +68,6 @@ test-easing = ->
     el.style.display = \none
 
   for ease-name, ease of Ease
-
     cnv = document.create-element \canvas
     cnv.width = 200
     cnv.height = 200

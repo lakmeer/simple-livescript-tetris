@@ -58,16 +58,14 @@ export class ThreeJsRenderer
 
     @scene-man.root.position.set 0, -@y, -@r
 
-    log @scene-man.root, @scene-man.root.position
-
     # Debug
-    #@scene-man.camera.position.set 0, @y, @r
-    @scene-man.camera.look-at new THREE.Vector3 0, @r, @y
+    @scene-man.camera.position.set 0, 0, 0
+    @scene-man.camera.look-at new THREE.Vector3 0, @y, -@r
     @show-scene-helpers!
     #@position-debug-camera 1, 1
 
     #@scene-man.camera.position.set 0, 5, 10
-    @scene-man.controls.zero-sensor!
+    @scene-man.controls.reset-sensor!
 
     document.add-event-listener \mousemove, ({ pageX, pageY }) ~>
       return
@@ -82,26 +80,23 @@ export class ThreeJsRenderer
     axis  = new THREE.AxisHelper 5
     light = new THREE.PointLightHelper @parts.lighting.light, 1
     spot  = new THREE.SpotLightHelper  @parts.lighting.spotlight, 1
-    #@scene-man.add grid, light
+    @scene-man.add grid, light, spot
 
     #@parts.arena-cells.show-bounds @scene-man.root
     #@parts.this-brick.show-bounds @scene-man.root
     #@parts.title.show-bounds @scene-man.root
 
     #@scene-man.camera.position <<< x: 10, y: 15, z: 10
-    @scene-man.camera.look-at new THREE.Vector3 0, @y, 0
+    #@scene-man.camera.look-at new THREE.Vector3 0, @y, 0
 
   position-debug-camera: (phase, vphase = 0) ->
-    @scene-man.root.position.y = -@y
-    return
     @scene-man.camera.position.x = @r * sin phase
     @scene-man.camera.position.y = @y + @r * -sin vphase
-    @scene-man.camera.position.z = @r * cos phase
-    @scene-man.camera.look-at new THREE.Vector3 0, 10, 0
+    @scene-man.camera.look-at new THREE.Vector3 0, @y, -@r
 
   auto-rotate-debug-camera: (gs) ->
-    #@scene-man.camera.position.set 0, @y, @r
-    #return
+    #@parts.lighting.light.position.z = @r * sin gs.elapsed-time / 1000
+    return
     @position-debug-camera pi/10 * sin gs.elapsed-time / 1000
 
   calculate-jolt: ({ rows-to-remove, timers }:gs) ->
@@ -122,8 +117,8 @@ export class ThreeJsRenderer
     jitter = [ (rand -zz, zz), (rand -zz, zz) ]
 
     @parts.arena-cells.show-zap-effect jolt, gs
-    @scene-man.root.position.x = jitter.0
-    @scene-man.root.position.y = jitter.1 + jolt
+    @scene-man.offset.position.x = jitter.0
+    @scene-man.offset.position.y = jitter.1 + jolt
     @auto-rotate-debug-camera gs
 
     # if rows were only just begun to be removed this frame, spawn particles,
@@ -161,7 +156,7 @@ export class ThreeJsRenderer
     @parts.next-brick.update-wiggle gs, gs.elapsed-time
 
     # Jitter and jolt
-    @scene-man.root.position.y = @calculate-jolt gs
+    @scene-man.offset.position.y = @calculate-jolt gs
 
     # Debug camera-motion
     @auto-rotate-debug-camera gs
@@ -200,7 +195,7 @@ export class ThreeJsRenderer
     | \remove-lines => @render-line-zap gs
     | \failure      => @render-fail-screen gs
     | otherwise     => log "ThreeJsRenderer::render - Unknown metagamestate:", gs.metagame-state
-    @parts.particles.update 1, @state.frames-since-rows-removed, gs.Δt
+    #@parts.particles.update gs.timers.removal-animation.progress, @state.frames-since-rows-removed, gs.Δt
     @scene-man.render!
 
   append-to: (host) ->

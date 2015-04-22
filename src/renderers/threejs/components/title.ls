@@ -55,7 +55,7 @@ export class Title extends Base
     @title.position <<< title-offset
 
     @registration.add @title
-    @registration.position <<< { x: 0, y: height - 0.5 }
+    @registration.position <<< { x: 0, y: height }
 
     for row, y in word
       for cell, x in row

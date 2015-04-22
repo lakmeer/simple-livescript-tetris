@@ -26,6 +26,7 @@ var bundler = browserify({
   cache: {},
   packageCache: {},
   entries: [ './src/index.ls' ],
+  noParse: [ 'THREE', './lib/three.min.js' ],
   extensions: '.ls'
 });
 
@@ -52,6 +53,7 @@ gulp.task('browserify', function () {
 
 gulp.task('default', [ 'server', 'browserify' ], function () {
   gulp.watch(['src/**/*.ls'], [ 'browserify' ]);
+  gulp.watch(['lib/**/*.js'], [ 'browserify' ]);
   gulp.watch(['public/**/*']).on('change', reload);
 });
 

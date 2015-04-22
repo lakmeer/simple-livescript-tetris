@@ -23,7 +23,9 @@ export class SceneManager
     @scene    = new THREE.Scene!
     @camera   = new THREE.PerspectiveCamera 75, aspect, 1, 10000
     @controls = new THREE.VRControls @camera
+
     @root     = new THREE.Object3D
+    @offset   = new THREE.Object3D
 
     # Apply VR stereo rendering to renderer
     @effect = new THREE.VREffect @renderer
@@ -34,17 +36,19 @@ export class SceneManager
     window.addEventListener \resize, @resize, false
     document.body.addEventListener \dblclick, @go-fullscreen
 
-  enable-shadow-casting: ->
-    @renderer.shadow-map-enabled = yes
-    @renderer.shadow-map-soft = yes
-    @renderer.shadowCameraNear = 3
-    @renderer.shadowCameraFar = 1000
-    @renderer.shadowCameraFov = 50
+    @scene.add @root
+    @root.add @offset
 
-    @renderer.shadowMapBias = 0.0039
-    @renderer.shadowMapDarkness = 0.5
-    @renderer.shadowMapWidth = 1024
-    @renderer.shadowMapHeight = 1024
+  enable-shadow-casting: ->
+    @renderer.shadow-map-soft     = yes
+    @renderer.shadow-map-enabled  = yes
+    @renderer.shadow-camera-far   = 1000
+    @renderer.shadow-camera-fov   = 50
+    @renderer.shadow-camera-near  = 3
+    @renderer.shadow-map-bias     = 0.0039
+    @renderer.shadow-map-width    = 1024
+    @renderer.shadow-map-height   = 1024
+    @renderer.shadow-map-darkness = 0.5
 
   go-fullscreen: ~>
     log 'Starting fullscreen...'
@@ -52,7 +56,7 @@ export class SceneManager
 
   zero-sensor: ({ key-code }:event) ~>
     event.prevent-default!
-    if key-code is 86 then @controls.zero-sensor!
+    if key-code is 86 then @controls.reset-sensor!
 
   resize: ~>
     @camera.aspect = window.innerWidth / window.innerHeight
@@ -68,10 +72,7 @@ export class SceneManager
   dom-element:~
     -> @renderer.dom-element
 
-  root:~
-    -> @scene
-
   add: ->
     for obj in arguments
-      @root.add if obj.root? then that else obj
+      @offset.add if obj.root? then that else obj
 

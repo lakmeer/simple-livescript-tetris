@@ -15,6 +15,7 @@ export class Lighting extends Base
     super ...
 
     @light = new THREE.PointLight 0xffffff, 1.1, 100
+    @light.position.set 0, 5, -1
     @root.add @light
 
     @spotlight = new THREE.SpotLight 0xffffff
