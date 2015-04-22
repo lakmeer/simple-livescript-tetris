@@ -49,16 +49,24 @@ export class ThreeJsRenderer
     for name, part of @parts
       @scene-man.add part
 
-    @r = 20
-    @y = 10
+    @r = 15
+    @y = 3
+
+    @scene-man.root.position.set 0, -@y, -@r
+
+    log @scene-man.root, @scene-man.root.position
 
     # Debug
-    @scene-man.camera.position.set 0, @y, @r
-    @scene-man.camera.look-at new THREE.Vector3 0, 0, 0
+    #@scene-man.camera.position.set 0, @y, @r
+    @scene-man.camera.look-at new THREE.Vector3 0, @r, @y
     @show-scene-helpers!
-    @position-debug-camera 0, 0
+    #@position-debug-camera 1, 1
+
+    #@scene-man.camera.position.set 0, 5, 10
+    @scene-man.controls.zero-sensor!
 
     document.add-event-listener \mousemove, ({ pageX, pageY }) ~>
+      return
       @position-debug-camera(
         lerp -1, 1, pageX / window.inner-width
         lerp -1, 1, pageY / window.inner-height)
@@ -79,13 +87,16 @@ export class ThreeJsRenderer
     @scene-man.camera.look-at new THREE.Vector3 0, @y, 0
 
   position-debug-camera: (phase, vphase = 0) ->
+    @scene-man.root.position.y = -@y
+    return
     @scene-man.camera.position.x = @r * sin phase
     @scene-man.camera.position.y = @y + @r * -sin vphase
     @scene-man.camera.position.z = @r * cos phase
     @scene-man.camera.look-at new THREE.Vector3 0, 10, 0
 
   auto-rotate-debug-camera: (gs) ->
-    return
+    #@scene-man.camera.position.set 0, @y, @r
+    #return
     @position-debug-camera pi/10 * sin gs.elapsed-time / 1000
 
   calculate-jolt: ({ rows-to-remove, timers }:gs) ->
