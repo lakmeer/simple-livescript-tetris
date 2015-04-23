@@ -118,7 +118,7 @@ export class ThreeJsRenderer
 
     @parts.arena-cells.show-zap-effect jolt, gs
     @scene-man.offset.position.x = jitter.0
-    @scene-man.offset.position.y = jitter.1 + jolt
+    @scene-man.offset.position.y = jitter.1 #+ jolt
     @auto-rotate-debug-camera gs
 
     # if rows were only just begun to be removed this frame, spawn particles,
@@ -128,8 +128,8 @@ export class ThreeJsRenderer
       @parts.particles.prepare rows-to-remove
       @state.frames-since-rows-removed = 0
 
-    @parts.particles.update timers.removal-animation.progress,
-      @state.frames-since-rows-removed, gs.Δt
+    #@parts.particles.update timers.removal-animation.progress,
+      #@state.frames-since-rows-removed, gs.Δt
 
   render-arena: ({ arena, brick }:gs) ->
 
@@ -162,7 +162,7 @@ export class ThreeJsRenderer
     @auto-rotate-debug-camera gs
 
     # Update any particles that happen to be alive
-    @parts.particles.update gs.timers.removal-animation.progress, gs.Δt
+    #@parts.particles.update gs.timers.removal-animation.progress, @state.frames-since-rows-removed, gs.Δt
 
   render-pause-menu: ({{ height }:arena, timers }:gs) ->
 
@@ -195,7 +195,7 @@ export class ThreeJsRenderer
     | \remove-lines => @render-line-zap gs
     | \failure      => @render-fail-screen gs
     | otherwise     => log "ThreeJsRenderer::render - Unknown metagamestate:", gs.metagame-state
-    #@parts.particles.update gs.timers.removal-animation.progress, @state.frames-since-rows-removed, gs.Δt
+    @parts.particles.update gs.timers.removal-animation.progress, @state.frames-since-rows-removed, gs.Δt
     @scene-man.render!
 
   append-to: (host) ->

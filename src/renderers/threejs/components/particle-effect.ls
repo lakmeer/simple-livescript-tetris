@@ -6,11 +6,12 @@
 { mesh-materials } = require \../palette
 
 
-export class ParticleBurst extends Base
+size     = 0.2
+speed    = 5
+lifespan = 3000
 
-  size     = 0.3
-  speed    = 3
-  lifespan = 3000
+
+export class ParticleBurst extends Base
 
   (@opts, {{ width, height }:arena }:gs) ->
 
@@ -24,8 +25,9 @@ export class ParticleBurst extends Base
 
     @positions  = new Float32Array particles * 3
     @velocities = new Float32Array particles * 3
-    @lifespans  = new Float32Array particles * 3
     @colors     = new Float32Array particles * 3
+    @lifespans  = new Float32Array particles
+    @maxlifes   = new Float32Array particles
 
     @pos-attr = new THREE.BufferAttribute @positions, 3
     @col-attr = new THREE.BufferAttribute @colors, 3
@@ -54,7 +56,7 @@ export class ParticleBurst extends Base
       @colors[ i + 0 ] = 1
       @colors[ i + 1 ] = 1
       @colors[ i + 2 ] = 1
-      @lifespans[i] = 0  # Start dead until I sasy otherwise
+      @lifespans[i/3] = 0  # Start dead until I say otherwise
 
   accelerate-particle: (i, t, p) ->
 
@@ -93,24 +95,30 @@ export class ParticleBurst extends Base
     @velocities[i + 0] = vx1
     @velocities[i + 1] = vy1
     @velocities[i + 2] = vz1
-    @colors[ i + 0 ] = floor 255 * Math.random!
-    @colors[ i + 1 ] = floor 255 * Math.random!
-    @colors[ i + 2 ] = floor 255 * Math.random!
+
+    l = @lifespans[i/3]/@maxlifes[i/3]
+
+    @colors[ i + 0 ] = l
+    @colors[ i + 1 ] = l*l
+    @colors[ i + 2 ] = l*l*l*l
 
   set-height: (y) ->
-    for i from 0 til @lifespans.length
-      @lifespans[i] = lifespan/2 + Math.random! * lifespan/2
-      @positions[i * 3 + 1] = y # + Math.random! - 0.5
+    @reset!
+    for i from 0 til @positions.length by 3
+      @lifespans[i/3] = lifespan/2 + Math.random! * lifespan/2
+      @maxlifes[i/3] = @lifespans[i/3]
+      @positions[i + 1] = y + Math.random! - 0.5
 
   update: (p, Δt) ->
-    #if p < @last-p then @reset-particles!
-    @last-p = p
+    #if p < @last-p then @reset!
+    #@last-p = p
 
     for i from 0 til @positions.length by 3
       @accelerate-particle i, Δt, 1
       @lifespans[i/3] -= Δt
 
     @pos-attr.needs-update = true
+    @col-attr.needs-update = true
 
 
 #
