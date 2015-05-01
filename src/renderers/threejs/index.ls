@@ -53,10 +53,27 @@ export class ThreeJsRenderer
     for name, part of @parts
       @scene-man.add part
 
-    @r = 15
-    @y = 3
+    @r = 0.35
+    @y = 0.61
+    @s = 0.04
 
     @scene-man.root.position.set 0, -@y, -@r
+    #@scene-man.root.scale.set @s, @s, @s
+
+    @parts.arena-cells.root.scale.set @s, @s, @s
+    @parts.this-brick.root.scale.set @s, @s, @s
+    @parts.next-brick.root.scale.set @s, @s, @s
+    @parts.start-menu.root.scale.set @s, @s, @s
+    @parts.title.root.scale.set @s, @s, @s
+    @parts.particles.root.scale.set @s, @s, @s
+    @parts.guide-lines.root.scale.set @s, @s, @s
+    @parts.arena-cells.root.position.z = -0.5
+    @parts.this-brick.root.position.z = -0.5
+    @parts.next-brick.root.position.z = -0.5
+    @parts.start-menu.root.position.z = -0.5
+    @parts.title.root.position.z = -0.5
+    @parts.guide-lines.position.z = -0.5
+    @parts.particles.position.z = -0.5
 
     # Debug
     @scene-man.camera.position.set 0, 0, 0
@@ -80,7 +97,7 @@ export class ThreeJsRenderer
     axis  = new THREE.AxisHelper 5
     light = new THREE.PointLightHelper @parts.lighting.light, 1
     spot  = new THREE.SpotLightHelper  @parts.lighting.spotlight, 1
-    @scene-man.add grid, light, spot
+      #@scene-man.add light, spot
 
     #@parts.arena-cells.show-bounds @scene-man.root
     #@parts.this-brick.show-bounds @scene-man.root
@@ -109,11 +126,11 @@ export class ThreeJsRenderer
         0
 
     zz = rows-to-remove.length
-    jolt = -1 * p * (1 + zz) * gs.options.hard-drop-jolt-amount
+    jolt = -@s * p * (1 + zz) * gs.options.hard-drop-jolt-amount
 
   render-line-zap: ({ arena, rows-to-remove, timers }:gs) ->
     jolt   = @calculate-jolt gs
-    zz     = rows-to-remove.length / 20
+    zz     = @s * rows-to-remove.length / 20
     jitter = [ (rand -zz, zz), (rand -zz, zz) ]
 
     @parts.arena-cells.show-zap-effect jolt, gs

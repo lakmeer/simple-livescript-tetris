@@ -6,9 +6,9 @@
 { mesh-materials } = require \../palette
 
 
-size     = 0.2
-speed    = 5
-lifespan = 3000
+size     = 0.006
+speed    = 6
+lifespan = 2000
 
 
 export class ParticleBurst extends Base

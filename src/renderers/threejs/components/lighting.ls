@@ -14,12 +14,13 @@ export class Lighting extends Base
   (@opts, gs) ->
     super ...
 
-    @light = new THREE.PointLight 0xffffff, 1.1, 100
-    @light.position.set 0, 5, -1
+    @light = new THREE.PointLight 0xffffff, 1, 1
+    @light.position.set 0, 1, -0.1
     @root.add @light
 
-    @spotlight = new THREE.SpotLight 0xffffff
-    @spotlight.position.set 0, gs.arena.height, 0
+    @spotlight = new THREE.SpotLight 0xffffff, 1, 100, 0.3
+    @spotlight.position.set 0, 0.1, 0 #gs.arena.height * 0.06, 0
+    @spotlight.look-at new THREE.Vector3 0, 0, 0
 
     # Shadows
     @spotlight.cast-shadow = yes
@@ -34,6 +35,5 @@ export class Lighting extends Base
     @spotlight.shadow-camera-far = 2500
     @spotlight.shadow-camera-fov = 50
 
-
-    #@root.add @spotlight
+    @root.add @spotlight
 

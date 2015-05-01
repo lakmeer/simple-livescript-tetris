@@ -21,7 +21,7 @@ export class SceneManager
     # Create a three.js scene
     @renderer = new THREE.WebGLRenderer antialias: true
     @scene    = new THREE.Scene!
-    @camera   = new THREE.PerspectiveCamera 75, aspect, 1, 10000
+    @camera   = new THREE.PerspectiveCamera 75, aspect, 0.01, 100
     @controls = new THREE.VRControls @camera
 
     @root     = new THREE.Object3D
